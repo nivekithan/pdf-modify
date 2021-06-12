@@ -10,19 +10,43 @@ type RemovePageAction = {
 export class PdfActions {
   readonly url: string;
   private actions: Actions[];
+  private redoActions: Actions[];
 
   constructor(url: string) {
     this.url = url;
     this.actions = [];
+    this.redoActions = [];
   }
 
   removePage(pageIndex: number) {
+    this.clearRedoActions();
+
     const newAction: RemovePageAction = {
       type: "removePage",
       pageIndex,
     };
 
     this.actions.push(newAction);
+  }
+
+  undo() {
+    const lastAction = this.actions.pop();
+
+    if (lastAction) {
+      this.redoActions.push(lastAction);
+    } else {
+      throw new Error("There are no actions left to undo");
+    }
+  }
+
+  redo() {
+    const lastAction = this.redoActions.pop();
+
+    if (lastAction) {
+      this.actions.push(lastAction);
+    } else {
+      throw new Error("There are no actions left to redo");
+    }
   }
 
   async getNewPdfLink() {
@@ -38,9 +62,10 @@ export class PdfActions {
     });
 
     const newUint8Array = await currPdf.save();
-    return URL.createObjectURL(
-      new Blob([newUint8Array.buffer], { type: "application/pdf" })
-    );
-   
+    return URL.createObjectURL(new Blob([newUint8Array.buffer], { type: "application/pdf" }));
+  }
+
+  private clearRedoActions() {
+    this.redoActions = [];
   }
 }
