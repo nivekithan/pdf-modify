@@ -1,45 +1,44 @@
-import React, { useState } from 'react'
-import logo from './logo.svg'
-import './App.css'
+import React, { useState } from "react";
+import { Upload } from "./components/upload";
+import { pdfjs } from "react-pdf";
+import { Pdf } from "./components/pdf";
 
-function App() {
-  const [count, setCount] = useState(0)
+// Windicss generated css file
+import "virtual:windi.css";
+import { convertToArrayBuffer } from "./utils/convertToArrayBuffer";
+
+// react-pdf requires this to work properly
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
+export const App = () => {
+  const [fileUrls, setFileUrls] = useState<string[]>([]);
+
+  const onChangeLoadFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.currentTarget.files;
+
+    if (!fileList) {
+      throw new Error(
+        "onChangeLoadFiles events listener should only be added to input[type='file']"
+      );
+    }
+
+    const fileArr = Array.from(fileList);
+
+    const arrayBuffers = await Promise.all(fileArr.map(convertToArrayBuffer));
+    const urls = arrayBuffers.map((buffers) => {
+      const blob = new Blob([buffers], { type: "application/pdf" });
+      return URL.createObjectURL(blob);
+    });
+
+    setFileUrls(urls);
+  };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Hello Vite + React!</p>
-        <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
-            count is: {count}
-          </button>
-        </p>
-        <p>
-          Edit <code>App.tsx</code> and save to test HMR updates.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          {' | '}
-          <a
-            className="App-link"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-        </p>
-      </header>
+    <div className="grid place-items-center h-screen">
+      <div>
+        <Upload onChange={onChangeLoadFiles} />
+        {fileUrls[0] ? <Pdf url={fileUrls[0]} /> : null}
+      </div>
     </div>
-  )
-}
-
-export default App
+  );
+};
