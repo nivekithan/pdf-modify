@@ -16,15 +16,11 @@ type UploadProps = {
 export const Upload = ({ onChange }: UploadProps) => {
   const originalFileInput = useRef<HTMLInputElement | null>(null);
 
-  const onClickOpenFilePicker = (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
+  const onClickOpenFilePicker = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
 
     if (!originalFileInput.current) {
-      throw new Error(
-        `OriginalFileInput ref is null. Pass the ref to input[type="file"] element`
-      );
+      throw new Error(`OriginalFileInput ref is null. Pass the ref to input[type="file"] element`);
     }
 
     originalFileInput.current.click();

@@ -31,9 +31,16 @@ export const Pdf = ({ url }: PdfProps) => {
     };
   };
 
-  const onDownload = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const onDownload = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
     e.preventDefault();
-    pdfActions.getNewPdf();
+    const link = await pdfActions.getNewPdfLink();
+    const downloadLinK = document.createElement("a");
+    downloadLinK.href = link;
+    downloadLinK.download = "pdf-modify.pdf";
+    downloadLinK.click();
+    URL.revokeObjectURL(link);
   };
 
   return (
