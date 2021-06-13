@@ -29,27 +29,41 @@ export class PdfActions {
     this.actions.push(newAction);
   }
 
-  undo() {
+  canUndo() {
+    return this.actions.length !== 0;
+  }
+
+  undo(): Actions {
     const lastAction = this.actions.pop();
 
     if (lastAction) {
       this.redoActions.push(lastAction);
+      return lastAction;
     } else {
       throw new Error("There are no actions left to undo");
     }
   }
 
-  redo() {
+  canRedo() {
+    return this.redoActions.length !== 0;
+  }
+
+  redo(): Actions {
     const lastAction = this.redoActions.pop();
 
     if (lastAction) {
       this.actions.push(lastAction);
+      return lastAction;
     } else {
       throw new Error("There are no actions left to redo");
     }
   }
 
   async getNewPdfLink() {
+    if (this.actions.length === 0) {
+      return this.url;
+    }
+
     const res = await fetch(this.url);
     const currArrayBuffer = await res.arrayBuffer();
     const currPdf = await PDFDocument.load(currArrayBuffer);

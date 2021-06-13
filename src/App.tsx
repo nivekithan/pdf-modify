@@ -35,7 +35,7 @@ export const App = () => {
 
   return (
     <div className="grid place-items-center h-screen">
-      <div>
+      <div className="flex flex-col gap-y-2">
         <Upload onChange={onChangeLoadFiles} />
         {fileUrls[0] ? <Pdf url={fileUrls[0]} /> : null}
       </div>
