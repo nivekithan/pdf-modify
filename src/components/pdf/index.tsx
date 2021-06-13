@@ -3,32 +3,67 @@ import { PdfActions } from "../../pdfActions/pdfActions";
 import { downloadLink } from "../../utils/downloadLink";
 import { PdfDocument } from "./pdfDocument";
 import { PdfPage } from "./pdfPage";
+import { useTotalPages } from "../../hooks/useTotalPages";
+import { PageHolder } from "./pageHolder";
+import { PageMenu } from "./pageMenu";
+import { fallbackIfUndefined } from "../../utils/fallbackIfUndefined";
 
 type PdfProps = {
   url: string;
+  name: string;
+};
+
+type PageInfo = {
+  render: boolean;
+  rotation: number;
 };
 
 export const Pdf = ({ url }: PdfProps) => {
-  const [canRender, setCanRender] = useState<Record<number, boolean>>({});
+  const [pageInfo, setPageInfo] = useState<Record<number, PageInfo>>({});
+  const [totalPages, onLoadSuccess] = useTotalPages();
+
   const pdfActions = useMemo(() => {
     return new PdfActions(url);
   }, [url]);
 
   const getCanRender = (num: number) => {
-    const value = canRender[num];
+    const value = pageInfo[num];
 
-    if (typeof value === "undefined") {
-      return true;
-    } else {
-      return value;
-    }
+    return fallbackIfUndefined(value?.render, true);
+  };
+
+  const getRotation = (pageIndex: number): number => {
+    const info = pageInfo[pageIndex];
+
+    return fallbackIfUndefined(info?.rotation, 0);
+  };
+
+  const updatePageInfo = (pageIndex: number, info: Partial<PageInfo>) => {
+    const render = fallbackIfUndefined(info.render, getCanRender(pageIndex));
+    const rotation = fallbackIfUndefined(info.rotation, getRotation(pageIndex));
+
+    setPageInfo((s) => ({ ...s, [pageIndex]: { render, rotation } }));
   };
 
   const onRemove = (pageIndex: number) => {
     return (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.preventDefault();
       pdfActions.removePage(pageIndex);
-      setCanRender((s) => ({ ...s, [pageIndex]: false }));
+      updatePageInfo(pageIndex, { render: false });
+    };
+  };
+
+  const onRotate = (pageIndex: number, dir: "left" | "right") => {
+    return (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      e.preventDefault();
+
+      if (dir === "left") {
+        pdfActions.rotatePage(pageIndex, -90);
+        updatePageInfo(pageIndex, { rotation: getRotation(pageIndex) - 90 });
+      } else if (dir === "right") {
+        pdfActions.rotatePage(pageIndex, 90);
+        updatePageInfo(pageIndex, { rotation: getRotation(pageIndex) + 90 });
+      }
     };
   };
 
@@ -47,7 +82,13 @@ export const Pdf = ({ url }: PdfProps) => {
 
       switch (lastAction.type) {
         case "removePage":
-          setCanRender((s) => ({ ...s, [lastAction.pageIndex]: true }));
+          updatePageInfo(lastAction.pageIndex, { render: true });
+          break;
+        case "rotatePage":
+          updatePageInfo(lastAction.pageIndex, {
+            rotation: getRotation(lastAction.pageIndex) - lastAction.degree,
+          });
+          break;
       }
     } catch (err) {
       // TODO
@@ -62,8 +103,12 @@ export const Pdf = ({ url }: PdfProps) => {
 
       switch (lastAction.type) {
         case "removePage":
-          pdfActions.removePage(lastAction.pageIndex);
-          setCanRender((s) => ({ ...s, [lastAction.pageIndex]: false }));
+          updatePageInfo(lastAction.pageIndex, { render: false });
+          break;
+        case "rotatePage":
+          updatePageInfo(lastAction.pageIndex, {
+            rotation: getRotation(lastAction.pageIndex) + lastAction.degree,
+          });
       }
     } catch (err) {
       // TODO
@@ -71,25 +116,47 @@ export const Pdf = ({ url }: PdfProps) => {
   };
 
   return (
-    <PdfDocument
-      url={url}
-      onUndo={onUndo}
-      disableUndo={!pdfActions.canUndo()}
-      onRedo={onRedo}
-      disableRedo={!pdfActions.canRedo()}
-    >
-      <div className="flex flex-col gap-y-4">
-        <div className="flex gap-x-4">
-          <PdfPage pageIndexNumber={1} render={getCanRender(1)} onRemove={onRemove(1)} />
-          <PdfPage pageIndexNumber={2} render={getCanRender(2)} onRemove={onRemove(2)} />
-          <PdfPage pageIndexNumber={3} render={getCanRender(3)} onRemove={onRemove(3)} />
-        </div>
-        <button
-          className="bg-blue-600 px-3 py-2 text-white rounded-md hover:(bg-blue-800)"
-          onClick={onDownload}
-        >
-          Download
-        </button>
+    <PdfDocument url={url} onLoadSuccess={onLoadSuccess}>
+      <div className="mx-[10%] mb-20">
+        <PageHolder>
+          <div className="flex mb-20 flex-wrap">
+            {totalPages === undefined ? null : (
+              <>
+                <PdfPage
+                  pageIndexNumber={0}
+                  render={getCanRender(0)}
+                  onRemove={onRemove(0)}
+                  rotate={getRotation(0)}
+                  onRotateLeft={onRotate(0, "left")}
+                  onRotateRight={onRotate(0, "right")}
+                />
+                <PdfPage
+                  pageIndexNumber={1}
+                  render={getCanRender(1)}
+                  onRemove={onRemove(1)}
+                  rotate={getRotation(1)}
+                  onRotateLeft={onRotate(1, "left")}
+                  onRotateRight={onRotate(1, "right")}
+                />
+                <PdfPage
+                  pageIndexNumber={2}
+                  render={getCanRender(2)}
+                  onRemove={onRemove(2)}
+                  rotate={getRotation(2)}
+                  onRotateLeft={onRotate(2, "left")}
+                  onRotateRight={onRotate(2, "right")}
+                />
+              </>
+            )}
+          </div>
+        </PageHolder>
+        <PageMenu
+          onUndo={onUndo}
+          disableUndo={!pdfActions.canUndo()}
+          onRedo={onRedo}
+          disableRedo={!pdfActions.canRedo()}
+          onApplyChanges={onDownload}
+        />
       </div>
     </PdfDocument>
   );

@@ -1,10 +1,16 @@
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, degrees } from "pdf-lib";
 
-type Actions = RemovePageAction;
+type Actions = RemovePageAction | RotatePageAction;
 
 type RemovePageAction = {
   type: "removePage";
   pageIndex: number;
+};
+
+type RotatePageAction = {
+  type: "rotatePage";
+  pageIndex: number;
+  degree: number;
 };
 
 export class PdfActions {
@@ -24,6 +30,18 @@ export class PdfActions {
     const newAction: RemovePageAction = {
       type: "removePage",
       pageIndex,
+    };
+
+    this.actions.push(newAction);
+  }
+
+  rotatePage(pageIndex: number, degree: number) {
+    this.clearRedoActions();
+
+    const newAction: RotatePageAction = {
+      type: "rotatePage",
+      pageIndex,
+      degree,
     };
 
     this.actions.push(newAction);
@@ -72,6 +90,10 @@ export class PdfActions {
       switch (action.type) {
         case "removePage":
           currPdf.removePage(action.pageIndex);
+          break;
+        case "rotatePage":
+          currPdf.getPage(action.pageIndex).setRotation(degrees(action.degree));
+          break;
       }
     });
 

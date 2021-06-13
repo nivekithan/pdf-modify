@@ -31,16 +31,15 @@ export const Upload = ({ onChange }: UploadProps) => {
       <input
         type="file"
         ref={originalFileInput}
-        multiple
         accept={pdfAccept}
         className="hidden"
         onChange={onChange}
       />
       <button
-        className="bg-blue-600 text-white text-base py-2 px-3 rounded-md hover:bg-blue-800"
+        className="bg-blue-600 text-white text-2xl px-10 py-5 rounded-md grid place-items-center hover:bg-blue-800"
         onClick={onClickOpenFilePicker}
       >
-        Upload
+        Select PDF file
       </button>
     </div>
   );
