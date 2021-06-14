@@ -7,6 +7,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@dnd-kit/core": "^3.1.0",
     "pdf-lib": "^1.16.0",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",

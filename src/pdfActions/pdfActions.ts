@@ -78,18 +78,20 @@ export class PdfActions {
   }
 
   canReset() {
-    return this.actions.length !== 0;
+    return this.canRedo() || this.canUndo();
   }
 
   reset() {
+    if (!this.canReset()) {
+      throw new Error("There are no actions left to reset");
+    }
+
     const pastActions = [...this.actions].reverse();
 
-    if (pastActions.length !== 0) {
-      this.actions = [];
-      return pastActions;
-    } else {
-      throw new Error("There is no actions left to reset");
-    }
+    this.actions = [];
+    this.redoActions = [];
+
+    return pastActions;
   }
 
   async getNewPdfLink() {

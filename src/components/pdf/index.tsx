@@ -145,39 +145,19 @@ export const Pdf = ({ url }: PdfProps) => {
             } else if (pdfState.state === "success") {
               return (
                 <div className="flex flex-wrap">
-                  <PdfPage
-                    pageIndexNumber={0}
-                    render={getCanRender(0)}
-                    onRemove={onRemove(0)}
-                    rotate={getRotation(0)}
-                    onRotateLeft={onRotate(0, "left")}
-                    onRotateRight={onRotate(0, "right")}
-                  />
-                  <PdfPage
-                    pageIndexNumber={1}
-                    render={getCanRender(1)}
-                    onRemove={onRemove(1)}
-                    rotate={getRotation(1)}
-                    onRotateLeft={onRotate(1, "left")}
-                    onRotateRight={onRotate(1, "right")}
-                  />
-                  <PdfPage
-                    pageIndexNumber={2}
-                    render={getCanRender(2)}
-                    onRemove={onRemove(2)}
-                    rotate={getRotation(2)}
-                    onRotateLeft={onRotate(2, "left")}
-                    onRotateRight={onRotate(2, "right")}
-                  />
-
-                  <PdfPage
-                    pageIndexNumber={3}
-                    render={getCanRender(3)}
-                    onRemove={onRemove(3)}
-                    rotate={getRotation(3)}
-                    onRotateLeft={onRotate(3, "left")}
-                    onRotateRight={onRotate(3, "right")}
-                  />
+                  {Array(pdfState.totalPageNumber)
+                    .fill(0)
+                    .map((_, i) => (
+                      <PdfPage
+                        pageIndexNumber={i}
+                        render={getCanRender(i)}
+                        onRemove={onRemove(i)}
+                        rotate={getRotation(i)}
+                        onRotateLeft={onRotate(i, "left")}
+                        onRotateRight={onRotate(i, "right")}
+                        key={i}
+                      />
+                    ))}
                 </div>
               );
             } else {
