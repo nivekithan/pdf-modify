@@ -146,6 +146,15 @@ export const Pdf = ({ url }: PdfProps) => {
                   onRotateLeft={onRotate(2, "left")}
                   onRotateRight={onRotate(2, "right")}
                 />
+
+                <PdfPage
+                  pageIndexNumber={3}
+                  render={getCanRender(3)}
+                  onRemove={onRemove(3)}
+                  rotate={getRotation(3)}
+                  onRotateLeft={onRotate(3, "left")}
+                  onRotateRight={onRotate(3, "right")}
+                />
               </>
             )}
           </div>
