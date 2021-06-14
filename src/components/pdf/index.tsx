@@ -3,10 +3,12 @@ import { PdfActions } from "../../pdfActions/pdfActions";
 import { downloadLink } from "../../utils/downloadLink";
 import { PdfDocument } from "./pdfDocument";
 import { PdfPage } from "./pdfPage";
-import { useTotalPages } from "../../hooks/useTotalPages";
 import { PageHolder } from "./pageHolder";
 import { PageMenu } from "./pageMenu";
 import { fallbackIfUndefined } from "../../utils/fallbackIfUndefined";
+import { PdfLoadError } from "./pdfLoadError";
+import { usePdfState } from "../../hooks/usePdfState";
+import { PdfLoading } from "./pdfLoading";
 
 type PdfProps = {
   url: string;
@@ -20,7 +22,7 @@ type PageInfo = {
 
 export const Pdf = ({ url }: PdfProps) => {
   const [pageInfo, setPageInfo] = useState<Record<number, PageInfo>>({});
-  const [totalPages, onLoadSuccess] = useTotalPages();
+  const [pdfState, onLoadingSuccess, onLoadingError, onLoadingProgress] = usePdfState();
 
   const pdfActions = useMemo(() => {
     return new PdfActions(url);
@@ -115,49 +117,73 @@ export const Pdf = ({ url }: PdfProps) => {
     }
   };
 
+  const onReset = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+
+    try {
+      pdfActions.reset();
+      setPageInfo({});
+    } catch (err) {
+      // TODO
+    }
+  };
+
   return (
-    <PdfDocument url={url} onLoadSuccess={onLoadSuccess}>
+    <PdfDocument
+      url={url}
+      onLoadSuccess={onLoadingSuccess}
+      onLoadError={onLoadingError}
+      onLoadProgress={onLoadingProgress}
+    >
       <div className="mx-[10%] mb-20">
         <PageHolder>
-          <div className="flex mb-20 flex-wrap">
-            {totalPages === undefined ? null : (
-              <>
-                <PdfPage
-                  pageIndexNumber={0}
-                  render={getCanRender(0)}
-                  onRemove={onRemove(0)}
-                  rotate={getRotation(0)}
-                  onRotateLeft={onRotate(0, "left")}
-                  onRotateRight={onRotate(0, "right")}
-                />
-                <PdfPage
-                  pageIndexNumber={1}
-                  render={getCanRender(1)}
-                  onRemove={onRemove(1)}
-                  rotate={getRotation(1)}
-                  onRotateLeft={onRotate(1, "left")}
-                  onRotateRight={onRotate(1, "right")}
-                />
-                <PdfPage
-                  pageIndexNumber={2}
-                  render={getCanRender(2)}
-                  onRemove={onRemove(2)}
-                  rotate={getRotation(2)}
-                  onRotateLeft={onRotate(2, "left")}
-                  onRotateRight={onRotate(2, "right")}
-                />
+          {(() => {
+            if (pdfState.state === "error") {
+              return <PdfLoadError />;
+            } else if (pdfState.state === "loading") {
+              return <PdfLoading />;
+            } else if (pdfState.state === "success") {
+              return (
+                <div className="flex flex-wrap">
+                  <PdfPage
+                    pageIndexNumber={0}
+                    render={getCanRender(0)}
+                    onRemove={onRemove(0)}
+                    rotate={getRotation(0)}
+                    onRotateLeft={onRotate(0, "left")}
+                    onRotateRight={onRotate(0, "right")}
+                  />
+                  <PdfPage
+                    pageIndexNumber={1}
+                    render={getCanRender(1)}
+                    onRemove={onRemove(1)}
+                    rotate={getRotation(1)}
+                    onRotateLeft={onRotate(1, "left")}
+                    onRotateRight={onRotate(1, "right")}
+                  />
+                  <PdfPage
+                    pageIndexNumber={2}
+                    render={getCanRender(2)}
+                    onRemove={onRemove(2)}
+                    rotate={getRotation(2)}
+                    onRotateLeft={onRotate(2, "left")}
+                    onRotateRight={onRotate(2, "right")}
+                  />
 
-                <PdfPage
-                  pageIndexNumber={3}
-                  render={getCanRender(3)}
-                  onRemove={onRemove(3)}
-                  rotate={getRotation(3)}
-                  onRotateLeft={onRotate(3, "left")}
-                  onRotateRight={onRotate(3, "right")}
-                />
-              </>
-            )}
-          </div>
+                  <PdfPage
+                    pageIndexNumber={3}
+                    render={getCanRender(3)}
+                    onRemove={onRemove(3)}
+                    rotate={getRotation(3)}
+                    onRotateLeft={onRotate(3, "left")}
+                    onRotateRight={onRotate(3, "right")}
+                  />
+                </div>
+              );
+            } else {
+              return <div></div>;
+            }
+          })()}
         </PageHolder>
         <PageMenu
           onUndo={onUndo}
@@ -165,6 +191,8 @@ export const Pdf = ({ url }: PdfProps) => {
           onRedo={onRedo}
           disableRedo={!pdfActions.canRedo()}
           onApplyChanges={onDownload}
+          onReset={onReset}
+          disableReset={!pdfActions.canReset()}
         />
       </div>
     </PdfDocument>

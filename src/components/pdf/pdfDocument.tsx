@@ -1,18 +1,31 @@
-import { Document, pdfjs } from "react-pdf";
+import { Document, pdfjs, LoadingProcessData } from "react-pdf";
 import React from "react";
-import { ReactComponent as Redo } from "../../svg/redo.svg";
-import { ReactComponent as Undo } from "../../svg/undo.svg";
 
 type PdfDocumentProps = {
   url: string;
   children: React.ReactNode;
 
   onLoadSuccess: (pdf: pdfjs.PDFDocumentProxy) => void;
+  onLoadError: (err: Error) => void;
+  onLoadProgress: (data: LoadingProcessData) => void;
 };
 
-export const PdfDocument = ({ url, children, onLoadSuccess }: PdfDocumentProps) => {
+export const PdfDocument = ({
+  url,
+  children,
+  onLoadSuccess,
+  onLoadError,
+  onLoadProgress,
+}: PdfDocumentProps) => {
   return (
-    <Document file={url} onLoadSuccess={onLoadSuccess}>
+    <Document
+      file={url}
+      onLoadSuccess={onLoadSuccess}
+      error={<>{children}</>}
+      loading={<>{children}</>}
+      onLoadError={onLoadError}
+      onLoadProgress={onLoadProgress}
+    >
       {children}
     </Document>
   );

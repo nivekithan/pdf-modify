@@ -3,10 +3,14 @@ import { Upload } from "./components/upload";
 import { pdfjs } from "react-pdf";
 import { Pdf } from "./components/pdf";
 
-// Windicss generated css file
-import "virtual:windi.css";
 import { convertToArrayBuffer } from "./utils/convertToArrayBuffer";
 import { NavBar } from "./components/navBar";
+
+// Windicss generated css file
+import "virtual:windi.css";
+
+// CSS for react-spinner
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 
 // react-pdf requires this to work properly
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -55,7 +59,9 @@ export const App = () => {
         </section>
       </div>
       <div className="flex flex-col gap-y-2">
-        {fileUrls[0] ? <Pdf url={fileUrls[0].url} name={fileUrls[0].name} /> : null}
+        {fileUrls[0] ? (
+          <Pdf url={fileUrls[0].url} name={fileUrls[0].name} key={fileUrls[0].url} />
+        ) : null}
       </div>
     </div>
   );

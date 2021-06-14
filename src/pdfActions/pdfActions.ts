@@ -77,6 +77,21 @@ export class PdfActions {
     }
   }
 
+  canReset() {
+    return this.actions.length !== 0;
+  }
+
+  reset() {
+    const pastActions = [...this.actions].reverse();
+
+    if (pastActions.length !== 0) {
+      this.actions = [];
+      return pastActions;
+    } else {
+      throw new Error("There is no actions left to reset");
+    }
+  }
+
   async getNewPdfLink() {
     if (this.actions.length === 0) {
       return this.url;
