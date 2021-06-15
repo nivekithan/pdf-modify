@@ -1,79 +1,172 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { PdfActions } from "../../pdfActions/pdfActions";
 import { downloadLink } from "../../utils/downloadLink";
 import { PdfDocument } from "./pdfDocument";
-import { PdfPage } from "./pdfPage";
 import { PageHolder } from "./pageHolder";
 import { PageMenu } from "./pageMenu";
-import { fallbackIfUndefined } from "../../utils/fallbackIfUndefined";
 import { PdfLoadError } from "./pdfLoadError";
 import { usePdfState } from "../../hooks/usePdfState";
 import { PdfLoading } from "./pdfLoading";
+import { PdfPageLists } from "./pdfPageLists";
+import { useImmerReducer, Reducer } from "use-immer";
+import { arrayMoveMutate } from "../../utils/arrayMoveMutate";
+import { DragEndEvent } from "@dnd-kit/core";
+import { wrapDegree } from "../../utils/wrapDegree";
 
 type PdfProps = {
   url: string;
   name: string;
 };
 
-type PageInfo = {
+export type PageInfo = {
+  index: number;
   render: boolean;
   rotation: number;
 };
 
+type PageListsActions =
+  | PageItemCreateAction
+  | PageListsResetAction
+  | PageListsRemoveAction
+  | PageListsRotateAction
+  | PageListsReorderAction;
+
+type PageItemCreateAction = {
+  type: "create";
+  totalPageNumber: number;
+};
+
+type PageListsResetAction = {
+  type: "reset";
+};
+
+type PageListsRemoveAction = {
+  type: "removePage";
+  renderIndex: number;
+  reverse?: boolean;
+};
+
+type PageListsRotateAction = {
+  type: "rotatePage";
+  renderIndex: number;
+  rotate: number;
+  reverse?: boolean;
+};
+
+type PageListsReorderAction = {
+  type: "reorderPage";
+  fromRenderIndex: number;
+  toRenderIndex: number;
+  reverse?: boolean;
+};
+
+const pageItemsReducer: Reducer<PageInfo[] | undefined, PageListsActions> = (
+  pageItems,
+  actions
+) => {
+  if (actions.type === "create") {
+    return Array(actions.totalPageNumber)
+      .fill(0)
+      .map((_, i) => ({ render: true, rotation: 0, index: i }));
+  }
+
+  if (pageItems === undefined) {
+    throw new Error("The pageItems is undefined, use PageItemCreateAction to initialize");
+  }
+
+  if (actions.type === "reset") {
+    return Array(pageItems.length)
+      .fill(0)
+      .map((_, i) => ({ render: true, rotation: 0, index: i }));
+  }
+
+  if (!actions.reverse) {
+    switch (actions.type) {
+      case "removePage":
+        pageItems[actions.renderIndex].render = false;
+        return pageItems;
+      case "rotatePage":
+        pageItems[actions.renderIndex].rotation = wrapDegree(
+          pageItems[actions.renderIndex].rotation + actions.rotate
+        );
+        return pageItems;
+      case "reorderPage":
+        arrayMoveMutate(pageItems, actions.fromRenderIndex, actions.toRenderIndex);
+        return pageItems;
+    }
+  }
+
+  switch (actions.type) {
+    case "removePage":
+      pageItems[actions.renderIndex].render = true;
+      return pageItems;
+    case "rotatePage":
+      pageItems[actions.renderIndex].rotation = wrapDegree(
+        pageItems[actions.renderIndex].rotation - actions.rotate
+      );
+      return pageItems;
+    case "reorderPage":
+      arrayMoveMutate(pageItems, actions.toRenderIndex, actions.fromRenderIndex);
+      return pageItems;
+  }
+};
+
 export const Pdf = ({ url }: PdfProps) => {
-  const [pageInfo, setPageInfo] = useState<Record<number, PageInfo>>({});
-  const [pdfState, onLoadingSuccess, onLoadingError, onLoadingProgress] = usePdfState();
+  const [pageLists, setPageLists] = useImmerReducer(pageItemsReducer, undefined);
+  const [pdfState, onLoadingSuccess, onLoadingError, onLoadingProgress] = usePdfState(
+    (pageNumber) => setPageLists({ type: "create", totalPageNumber: pageNumber })
+  );
 
   const pdfActions = useMemo(() => {
     return new PdfActions(url);
   }, [url]);
 
-  const getCanRender = (num: number) => {
-    const value = pageInfo[num];
-
-    return fallbackIfUndefined(value?.render, true);
-  };
-
-  const getRotation = (pageIndex: number): number => {
-    const info = pageInfo[pageIndex];
-
-    return fallbackIfUndefined(info?.rotation, 0);
-  };
-
-  const updatePageInfo = (pageIndex: number, info: Partial<PageInfo>) => {
-    const render = fallbackIfUndefined(info.render, getCanRender(pageIndex));
-    const rotation = fallbackIfUndefined(info.rotation, getRotation(pageIndex));
-
-    setPageInfo((s) => ({ ...s, [pageIndex]: { render, rotation } }));
-  };
-
-  const onRemove = (pageIndex: number) => {
+  const onRemove = (renderIndex: number, shift: number) => {
     return (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.preventDefault();
-      pdfActions.removePage(pageIndex);
-      updatePageInfo(pageIndex, { render: false });
+      pdfActions.removePage({ index: renderIndex, shift });
+      setPageLists({ type: "removePage", renderIndex: renderIndex });
     };
   };
 
-  const onRotate = (pageIndex: number, dir: "left" | "right") => {
+  const onRotate = (pageIndex: number, dir: "left" | "right", shift: number) => {
     return (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.preventDefault();
 
       if (dir === "left") {
-        pdfActions.rotatePage(pageIndex, -90);
-        updatePageInfo(pageIndex, { rotation: getRotation(pageIndex) - 90 });
+        pdfActions.rotatePage({ index: pageIndex, shift }, -90);
+        setPageLists({ type: "rotatePage", renderIndex: pageIndex, rotate: -90 });
       } else if (dir === "right") {
-        pdfActions.rotatePage(pageIndex, 90);
-        updatePageInfo(pageIndex, { rotation: getRotation(pageIndex) + 90 });
+        pdfActions.rotatePage({ index: pageIndex, shift }, 90);
+        setPageLists({ type: "rotatePage", renderIndex: pageIndex, rotate: 90 });
       }
     };
+  };
+
+  const onDragEnd = (
+    dragEnd: DragEndEvent,
+    { activeShift, overShift }: { activeShift: number; overShift: number | null }
+  ) => {
+    if (dragEnd.over) {
+      const fromRenderIndex = Number(dragEnd.active.id);
+      const toRenderIndex = Number(dragEnd.over.id);
+
+      pdfActions.reorderPage(
+        { index: fromRenderIndex, shift: activeShift },
+        { index: toRenderIndex, shift: overShift || 0 }
+      );
+      setPageLists({
+        type: "reorderPage",
+        fromRenderIndex,
+        toRenderIndex,
+      });
+    }
   };
 
   const onDownload = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     const link = await pdfActions.getNewPdfLink();
     downloadLink(link);
-    URL.revokeObjectURL(link);
   };
 
   const onUndo = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -84,13 +177,27 @@ export const Pdf = ({ url }: PdfProps) => {
 
       switch (lastAction.type) {
         case "removePage":
-          updatePageInfo(lastAction.pageIndex, { render: true });
-          break;
-        case "rotatePage":
-          updatePageInfo(lastAction.pageIndex, {
-            rotation: getRotation(lastAction.pageIndex) - lastAction.degree,
+          setPageLists({
+            type: "removePage",
+            renderIndex: lastAction.pageIndex.index,
+            reverse: true,
           });
           break;
+        case "rotatePage":
+          setPageLists({
+            type: "rotatePage",
+            renderIndex: lastAction.pageIndex.index,
+            reverse: true,
+            rotate: lastAction.degree,
+          });
+          break;
+        case "reorderPage":
+          setPageLists({
+            type: "reorderPage",
+            fromRenderIndex: lastAction.fromPageIndex.index,
+            toRenderIndex: lastAction.toPageIndex.index,
+            reverse: true,
+          });
       }
     } catch (err) {
       // TODO
@@ -105,11 +212,20 @@ export const Pdf = ({ url }: PdfProps) => {
 
       switch (lastAction.type) {
         case "removePage":
-          updatePageInfo(lastAction.pageIndex, { render: false });
+          setPageLists({ type: "removePage", renderIndex: lastAction.pageIndex.index });
           break;
         case "rotatePage":
-          updatePageInfo(lastAction.pageIndex, {
-            rotation: getRotation(lastAction.pageIndex) + lastAction.degree,
+          setPageLists({
+            type: "rotatePage",
+            renderIndex: lastAction.pageIndex.index,
+            rotate: lastAction.degree,
+          });
+          break;
+        case "reorderPage":
+          setPageLists({
+            type: "reorderPage",
+            fromRenderIndex: lastAction.fromPageIndex.index,
+            toRenderIndex: lastAction.toPageIndex.index,
           });
       }
     } catch (err) {
@@ -122,7 +238,7 @@ export const Pdf = ({ url }: PdfProps) => {
 
     try {
       pdfActions.reset();
-      setPageInfo({});
+      setPageLists({ type: "reset" });
     } catch (err) {
       // TODO
     }
@@ -142,23 +258,14 @@ export const Pdf = ({ url }: PdfProps) => {
               return <PdfLoadError />;
             } else if (pdfState.state === "loading") {
               return <PdfLoading />;
-            } else if (pdfState.state === "success") {
+            } else if (pdfState.state === "success" && pageLists !== undefined) {
               return (
-                <div className="flex flex-wrap">
-                  {Array(pdfState.totalPageNumber)
-                    .fill(0)
-                    .map((_, i) => (
-                      <PdfPage
-                        pageIndexNumber={i}
-                        render={getCanRender(i)}
-                        onRemove={onRemove(i)}
-                        rotate={getRotation(i)}
-                        onRotateLeft={onRotate(i, "left")}
-                        onRotateRight={onRotate(i, "right")}
-                        key={i}
-                      />
-                    ))}
-                </div>
+                <PdfPageLists
+                  onRemove={onRemove}
+                  onRotate={onRotate}
+                  pageLists={pageLists}
+                  onDragEnd={onDragEnd}
+                />
               );
             } else {
               return <div></div>;

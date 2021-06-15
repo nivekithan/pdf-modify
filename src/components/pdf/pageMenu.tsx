@@ -26,8 +26,8 @@ export const PageMenu = ({
   disableReset,
 }: PageMenuProps) => {
   return (
-    <div className="border-2 border-gray-300 border-t-0 flex justify-between p-6">
-      <div className="flex gap-x-4">
+    <div className="border-2 border-gray-300 border-t-0 flex justify-between p-6 flex-wrap gap-y-2">
+      <div className="flex gap-x-4 flex-wrap gap-y-2">
         <button
           className={`bg-blue-600  text-white text-md font-semibold px-4 py-2 rounded-md ${
             disableUndo ? "opacity-50" : "hover:bg-blue-800"
@@ -47,7 +47,7 @@ export const PageMenu = ({
           Redo
         </button>
       </div>
-      <div className="flex items-center gap-x-4">
+      <div className="flex items-center gap-x-4 flex-wrap gap-y-2">
         <button
           className={`bg-red-600  text-white text-sm font-semibold px-4 py-2 rounded-md ${
             disableReset ? "opacity-50" : "hover:bg-red-700"

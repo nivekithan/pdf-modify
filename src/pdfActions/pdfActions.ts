@@ -1,16 +1,27 @@
 import { PDFDocument, degrees } from "pdf-lib";
+import { wrapDegree } from "../utils/wrapDegree";
 
-type Actions = RemovePageAction | RotatePageAction;
+type Actions = RemovePageAction | RotatePageAction | ReorderPageAction;
+type PageIndex = {
+  index: number;
+  shift: number;
+};
 
 type RemovePageAction = {
   type: "removePage";
-  pageIndex: number;
+  pageIndex: PageIndex;
 };
 
 type RotatePageAction = {
   type: "rotatePage";
-  pageIndex: number;
+  pageIndex: PageIndex;
   degree: number;
+};
+
+type ReorderPageAction = {
+  type: "reorderPage";
+  fromPageIndex: PageIndex;
+  toPageIndex: PageIndex;
 };
 
 export class PdfActions {
@@ -24,7 +35,7 @@ export class PdfActions {
     this.redoActions = [];
   }
 
-  removePage(pageIndex: number) {
+  removePage(pageIndex: PageIndex) {
     this.clearRedoActions();
 
     const newAction: RemovePageAction = {
@@ -35,16 +46,28 @@ export class PdfActions {
     this.actions.push(newAction);
   }
 
-  rotatePage(pageIndex: number, degree: number) {
+  rotatePage(pageIndex: PageIndex, degree: number) {
     this.clearRedoActions();
 
     const newAction: RotatePageAction = {
       type: "rotatePage",
       pageIndex,
-      degree,
+      degree: wrapDegree(degree),
     };
 
     this.actions.push(newAction);
+  }
+
+  reorderPage(fromPageIndex: PageIndex, toPageIndex: PageIndex) {
+    this.clearRedoActions();
+
+    const newActions: ReorderPageAction = {
+      type: "reorderPage",
+      fromPageIndex,
+      toPageIndex,
+    };
+
+    this.actions.push(newActions);
   }
 
   canUndo() {
@@ -77,6 +100,10 @@ export class PdfActions {
     }
   }
 
+  private clearRedoActions() {
+    this.redoActions = [];
+  }
+
   canReset() {
     return this.canRedo() || this.canUndo();
   }
@@ -106,10 +133,19 @@ export class PdfActions {
     this.actions.forEach((action) => {
       switch (action.type) {
         case "removePage":
-          currPdf.removePage(action.pageIndex);
+          currPdf.removePage(action.pageIndex.index - action.pageIndex.shift);
           break;
         case "rotatePage":
-          currPdf.getPage(action.pageIndex).setRotation(degrees(action.degree));
+          currPdf
+            .getPage(action.pageIndex.index - action.pageIndex.shift)
+            .setRotation(degrees(action.degree));
+          break;
+        case "reorderPage":
+          this.reorder(
+            currPdf,
+            action.fromPageIndex.index - action.fromPageIndex.shift,
+            action.toPageIndex.index - action.toPageIndex.shift
+          );
           break;
       }
     });
@@ -118,7 +154,9 @@ export class PdfActions {
     return URL.createObjectURL(new Blob([newUint8Array.buffer], { type: "application/pdf" }));
   }
 
-  private clearRedoActions() {
-    this.redoActions = [];
+  private reorder(pdf: PDFDocument, fromPageIndex: number, toPageIndex: number) {
+    const fromPage = pdf.getPage(fromPageIndex);
+    pdf.removePage(fromPageIndex);
+    pdf.insertPage(toPageIndex, fromPage);
   }
 }
