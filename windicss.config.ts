@@ -1,4 +1,5 @@
 import { defineConfig } from "vite-plugin-windicss";
+import windiForms from "windicss/plugin/forms";
 
 export default defineConfig({
   theme: {
@@ -18,4 +19,5 @@ export default defineConfig({
       },
     },
   },
+  plugins: [windiForms],
 });

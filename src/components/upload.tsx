@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useCallback } from "react";
 
 const pdfAccept = [
   ".pdf",
@@ -16,15 +16,20 @@ type UploadProps = {
 export const Upload = ({ onChange }: UploadProps) => {
   const originalFileInput = useRef<HTMLInputElement | null>(null);
 
-  const onClickOpenFilePicker = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault();
+  const onClickOpenFilePicker = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      e.preventDefault();
 
-    if (!originalFileInput.current) {
-      throw new Error(`OriginalFileInput ref is null. Pass the ref to input[type="file"] element`);
-    }
+      if (!originalFileInput.current) {
+        throw new Error(
+          `OriginalFileInput ref is null. Pass the ref to input[type="file"] element`
+        );
+      }
 
-    originalFileInput.current.click();
-  };
+      originalFileInput.current.click();
+    },
+    []
+  );
 
   return (
     <div>

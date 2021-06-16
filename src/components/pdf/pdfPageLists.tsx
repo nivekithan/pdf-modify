@@ -2,7 +2,7 @@ import React from "react";
 import { PdfPage } from "./pdfPage";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
-import { PageInfo } from ".";
+import { PageInfo } from "../../hooks/usePageLists";
 
 type PdfPageListsProps = {
   onRemove: (
@@ -18,11 +18,21 @@ type PdfPageListsProps = {
     dragEnd: DragEndEvent,
     shift: { activeShift: number; overShift: number | null }
   ) => void;
+  onToggleSelect: (
+    renderIndex: number,
+    shift: number
+  ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 
   pageLists: PageInfo[];
 };
 
-export const PdfPageLists = ({ onRemove, onRotate, pageLists, onDragEnd }: PdfPageListsProps) => {
+export const PdfPageLists = ({
+  onRemove,
+  onRotate,
+  pageLists,
+  onDragEnd,
+  onToggleSelect,
+}: PdfPageListsProps) => {
   let shift = 0;
   const indexToShift = new Map<string, number>();
 
@@ -57,6 +67,7 @@ export const PdfPageLists = ({ onRemove, onRotate, pageLists, onDragEnd }: PdfPa
                 key={info.index}
                 renderIndex={i}
                 disabled={!info.render}
+                onToggleSelect={onToggleSelect(i, shift)}
               />
             );
           })}

@@ -14,16 +14,20 @@ type PageMenuProps = {
   // Reset Actions
   onReset: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   disableReset: boolean;
+
+  // Split pdf
+  onSplit: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 };
 
 export const PageMenu = ({
   onApplyChanges,
   onRedo,
-  onUndo,
   disableRedo,
+  onUndo,
   disableUndo,
   onReset,
   disableReset,
+  onSplit,
 }: PageMenuProps) => {
   return (
     <div className="border-2 border-gray-300 border-t-0 flex justify-between p-6 flex-wrap gap-y-2">
@@ -55,6 +59,12 @@ export const PageMenu = ({
           onClick={onReset}
         >
           Reset Changes
+        </button>
+        <button
+          className="bg-purple-600 hover:bg-purple-800 text-white text-md font-semibold px-6 py-3 rounded-md"
+          onClick={onSplit}
+        >
+          Split PDF
         </button>
         <button
           className="bg-green-600 hover:bg-green-800 text-white text-md font-semibold px-6 py-3 rounded-md"

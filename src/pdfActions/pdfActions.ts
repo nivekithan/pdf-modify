@@ -1,27 +1,44 @@
 import { PDFDocument, degrees } from "pdf-lib";
 import { wrapDegree } from "../utils/wrapDegree";
 
-type Actions = RemovePageAction | RotatePageAction | ReorderPageAction;
-type PageIndex = {
+export type Actions =
+  | RemovePageAction
+  | RotatePageAction
+  | ReorderPageAction
+  | SelectPageAction
+  | RemoveMultiplePageAction;
+
+export type PageIndex = {
   index: number;
   shift: number;
 };
 
-type RemovePageAction = {
+export type RemovePageAction = {
   type: "removePage";
   pageIndex: PageIndex;
 };
 
-type RotatePageAction = {
+export type RemoveMultiplePageAction = {
+  type: "removeMultiplePage";
+  pageIndexes: PageIndex[];
+};
+
+export type RotatePageAction = {
   type: "rotatePage";
   pageIndex: PageIndex;
   degree: number;
 };
 
-type ReorderPageAction = {
+export type ReorderPageAction = {
   type: "reorderPage";
   fromPageIndex: PageIndex;
   toPageIndex: PageIndex;
+};
+
+export type SelectPageAction = {
+  type: "selectPage";
+  pageIndex: PageIndex;
+  select: boolean;
 };
 
 export class PdfActions {
@@ -41,6 +58,17 @@ export class PdfActions {
     const newAction: RemovePageAction = {
       type: "removePage",
       pageIndex,
+    };
+
+    this.actions.push(newAction);
+  }
+
+  removeMultiplePage(pageIndexes: PageIndex[]) {
+    this.clearRedoActions();
+
+    const newAction: RemoveMultiplePageAction = {
+      type: "removeMultiplePage",
+      pageIndexes,
     };
 
     this.actions.push(newAction);
@@ -68,6 +96,18 @@ export class PdfActions {
     };
 
     this.actions.push(newActions);
+  }
+
+  selectPage(pageIndex: PageIndex, select: boolean) {
+    this.clearRedoActions();
+
+    const newAction: SelectPageAction = {
+      type: "selectPage",
+      pageIndex,
+      select,
+    };
+
+    this.actions.push(newAction);
   }
 
   canUndo() {
@@ -132,6 +172,11 @@ export class PdfActions {
 
     this.actions.forEach((action) => {
       switch (action.type) {
+        case "selectPage":
+          // These actions have no so effect on pdf, only reason these actions were recorded
+          // was to provide undo, redo, reset functionality.So we can safely ignore those actions
+          break;
+
         case "removePage":
           currPdf.removePage(action.pageIndex.index - action.pageIndex.shift);
           break;
@@ -146,6 +191,11 @@ export class PdfActions {
             action.fromPageIndex.index - action.fromPageIndex.shift,
             action.toPageIndex.index - action.toPageIndex.shift
           );
+          break;
+        case "removeMultiplePage":
+          action.pageIndexes.forEach(({ index, shift }) => {
+            currPdf.removePage(index - shift);
+          });
           break;
       }
     });
