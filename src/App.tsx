@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Upload } from "./components/upload";
+import React from "react";
+import { Upload } from "./components/files/upload";
 import { pdfjs } from "react-pdf";
 import { Pdf } from "./components/pdf";
 
@@ -11,6 +11,8 @@ import "virtual:windi.css";
 
 // CSS for react-spinner
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+import { AddMoreFiles } from "./components/files/addMoreFiles";
+import { useFileUrls } from "./hooks/useFileUrls";
 
 // react-pdf requires this to work properly
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -21,7 +23,7 @@ export type PdfFiles = {
 };
 
 export const App = () => {
-  const [fileUrls, setFileUrls] = useState<PdfFiles[]>([]);
+  const [fileUrls, dispatchFileUrls] = useFileUrls();
 
   const onChangeLoadFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.currentTarget.files;
@@ -40,7 +42,29 @@ export const App = () => {
       return { url: URL.createObjectURL(blob), name: fileArr[i].name };
     });
 
-    setFileUrls(urls);
+    e.target.value = "";
+
+    dispatchFileUrls({ type: "loadNewFiles", files: urls });
+  };
+
+  const onChangePushFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.currentTarget.files;
+
+    if (!files) {
+      throw new Error(`Attach event listener on only input element whose type="file"`);
+    }
+
+    const fileArr = Array.from(files);
+
+    const arrayBuffers = await Promise.all(fileArr.map(convertToArrayBuffer));
+    const urls = arrayBuffers.map((buffers, i) => {
+      const blob = new Blob([buffers], { type: "application/pdf" });
+      return { url: URL.createObjectURL(blob), name: fileArr[i].name };
+    });
+
+    e.target.value = "";
+
+    dispatchFileUrls({ type: "pushNewFiles", files: urls });
   };
 
   return (
@@ -59,9 +83,17 @@ export const App = () => {
         </section>
       </div>
       <div className="flex flex-col gap-y-2">
-        {fileUrls[0] ? (
-          <Pdf url={fileUrls[0].url} name={fileUrls[0].name} key={fileUrls[0].url} />
-        ) : null}
+        {fileUrls.length > 0
+          ? fileUrls.map((value) => (
+              <Pdf
+                url={value.url}
+                name={value.name}
+                key={value.url}
+                dispatchFileUrls={dispatchFileUrls}
+              />
+            ))
+          : null}
+        <AddMoreFiles onChange={onChangePushFiles} />
       </div>
     </div>
   );

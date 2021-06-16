@@ -10,16 +10,21 @@ import { PdfLoading } from "./pdfLoading";
 import { PdfPageLists } from "./pdfPageLists";
 import { DragEndEvent } from "@dnd-kit/core";
 import { usePageLists } from "../../hooks/usePageLists";
+import { PDFDocument, degrees } from "pdf-lib";
+import { FileUrlsActions } from "../../hooks/useFileUrls";
+import { urlToArrayBuffer } from "../../utils/urlToArrayBuffer";
 
 type PdfProps = {
   url: string;
   name: string;
+  dispatchFileUrls: (actions: FileUrlsActions) => void;
 };
 
-export const Pdf = ({ url }: PdfProps) => {
+export const Pdf = ({ url, name, dispatchFileUrls }: PdfProps) => {
   const [pageLists, setPageLists] = usePageLists();
   const [pdfState, onLoadingSuccess, onLoadingError, onLoadingProgress] = usePdfState(
-    (pageNumber) => setPageLists({ type: "create", totalPageNumber: pageNumber })
+    (pageNumber, pageRotation) =>
+      setPageLists({ type: "create", totalPageNumber: pageNumber, pageRotation })
   );
 
   const pdfActions = useMemo(() => {
@@ -216,16 +221,17 @@ export const Pdf = ({ url }: PdfProps) => {
   };
 
   const onSplit = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.preventDefault();
 
-      const pageIndexes = (() => {
+      const [renderIndexes, pageIndexes] = (() => {
         if (!pageLists) {
           throw new Error("The pdf has not been loaded yet");
         }
 
         let shift = 0;
-        const pageIndexes: PageIndex[] = [];
+        const renderIndexes: PageIndex[] = [];
+        const pageIndexes: { index: number; rotation: number }[] = [];
 
         pageLists.forEach((value, i) => {
           if (!value.render) {
@@ -234,26 +240,53 @@ export const Pdf = ({ url }: PdfProps) => {
           }
 
           if (value.selected) {
-            pageIndexes.push({ index: i, shift });
+            renderIndexes.push({ index: i, shift });
+            pageIndexes.push({ index: value.index, rotation: value.rotation });
             shift++;
           }
         });
 
-        return pageIndexes;
+        return [renderIndexes, pageIndexes] as const;
       })();
 
-      if (pageIndexes.length) {
-        pdfActions.removeMultiplePage(pageIndexes);
+      if (renderIndexes.length) {
+        pdfActions.removeMultiplePage(renderIndexes);
 
-        pageIndexes.forEach(({ index }) => {
+        renderIndexes.forEach(({ index }) => {
           setPageLists({
             type: "removePage",
             renderIndex: index,
           });
         });
+
+        const [newPdfDoc, srcPdfDoc] = await Promise.all([
+          PDFDocument.create(),
+          PDFDocument.load(await urlToArrayBuffer(url)),
+        ]);
+
+        const copiedPages = await newPdfDoc.copyPages(
+          srcPdfDoc,
+          pageIndexes.map((v) => v.index)
+        );
+
+        copiedPages.forEach((page, i) => {
+          newPdfDoc.addPage(page);
+          newPdfDoc.getPage(i).setRotation(degrees(pageIndexes[i].rotation));
+        });
+
+        const uint8Arr = await newPdfDoc.save();
+        const newUrl = (() => {
+          const bolb = new Blob([uint8Arr.buffer], { type: "application/pdf" });
+          return URL.createObjectURL(bolb);
+        })();
+
+        dispatchFileUrls({
+          type: "pushNewFiles",
+          files: [{ name: `${name}-split.pdf`, url: newUrl }],
+        });
       }
     },
-    [pageLists, pdfActions, setPageLists]
+    [dispatchFileUrls, pageLists, pdfActions, setPageLists, url, name]
   );
 
   return (

@@ -1,6 +1,6 @@
 import React, { useRef, useCallback } from "react";
 
-const pdfAccept = [
+export const pdfAccept = [
   ".pdf",
   "application/pdf",
   "application/x-pdf",

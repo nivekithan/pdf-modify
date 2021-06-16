@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { pdfjs } from "react-pdf";
-import { PageInfo } from "../components/pdf";
 
 export type PdfState = PdfSuccessState | PdfLoadingState | PdfErrorState | PdfStaleState;
 
@@ -29,13 +28,26 @@ export type PdfStaleState = {
 };
 
 export const usePdfState = (
-  callback: (totalPageNumber: number) => void
+  callback: (totalPageNumber: number, pageRotation: number[]) => void
 ): [PdfState, (doc: pdfjs.PDFDocumentProxy) => void, (err: Error) => void, () => void] => {
   const [pdfState, setPdfState] = useState<PdfState>(createState("stale"));
 
-  const onLoadSuccess = ({ numPages }: pdfjs.PDFDocumentProxy) => {
-    setPdfState(createState("success", numPages));
-    callback(numPages);
+  const onLoadSuccess = async (doc: pdfjs.PDFDocumentProxy) => {
+    try {
+      const pageRotation = await Promise.all(
+        Array(doc.numPages)
+          .fill(0)
+          .map(async (_, i) => {
+            const page = await doc.getPage(i + 1);
+            return page.rotate;
+          })
+      );
+
+      setPdfState(createState("success", doc.numPages));
+      callback(doc.numPages, pageRotation);
+    } catch (err) {
+      setPdfState(createState("error", err));
+    }
   };
 
   const onLoadError = (err: Error) => {

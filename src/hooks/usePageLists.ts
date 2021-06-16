@@ -20,6 +20,7 @@ type PageListsActions =
 type PageItemCreateAction = {
   type: "create";
   totalPageNumber: number;
+  pageRotation: number[];
 };
 
 type PageListsResetAction = {
@@ -60,7 +61,12 @@ const pageItemsReducer: Reducer<PageInfo[] | undefined, PageListsActions> = (
   if (actions.type === "create") {
     return Array(actions.totalPageNumber)
       .fill(0)
-      .map((_, i) => ({ render: true, rotation: 0, index: i, selected: false }));
+      .map((_, i) => ({
+        render: true,
+        rotation: actions.pageRotation[i],
+        index: i,
+        selected: false,
+      }));
   }
 
   if (pageItems === undefined) {

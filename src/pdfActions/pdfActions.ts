@@ -1,4 +1,5 @@
 import { PDFDocument, degrees } from "pdf-lib";
+import { urlToArrayBuffer } from "../utils/urlToArrayBuffer";
 import { wrapDegree } from "../utils/wrapDegree";
 
 export type Actions =
@@ -166,9 +167,7 @@ export class PdfActions {
       return this.url;
     }
 
-    const res = await fetch(this.url);
-    const currArrayBuffer = await res.arrayBuffer();
-    const currPdf = await PDFDocument.load(currArrayBuffer);
+    const currPdf = await PDFDocument.load(await urlToArrayBuffer(this.url));
 
     this.actions.forEach((action) => {
       switch (action.type) {
