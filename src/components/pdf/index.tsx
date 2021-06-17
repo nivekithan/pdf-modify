@@ -8,13 +8,13 @@ import { PdfLoadError } from "./pdfLoadError";
 import { usePdfState } from "../../hooks/usePdfState";
 import { PdfLoading } from "./pdfLoading";
 import { PdfPageLists } from "./pdfPageLists";
-import { DragEndEvent } from "@dnd-kit/core";
 import { usePageLists } from "../../hooks/usePageLists";
 import { PDFDocument, degrees } from "pdf-lib";
 import { FileUrlsActions } from "../../hooks/useFileUrls";
 import { urlToArrayBuffer } from "../../utils/urlToArrayBuffer";
 import { PdfTopMenu } from "./pdfTopMenu";
 import { convertToArrayBuffer } from "../../utils/convertToArrayBuffer";
+import { DropResult } from "react-beautiful-dnd";
 
 type PdfProps = {
   url: string;
@@ -59,29 +59,6 @@ export const Pdf = ({ url, name, dispatchFileUrls, index }: PdfProps) => {
           setPageLists({ type: "rotatePage", renderIndex: pageIndex, rotate: 90 });
         }
       };
-    },
-    [pdfActions, setPageLists]
-  );
-
-  const onDragEnd = useCallback(
-    (
-      dragEnd: DragEndEvent,
-      { activeShift, overShift }: { activeShift: number; overShift: number | null }
-    ) => {
-      if (dragEnd.over) {
-        const fromRenderIndex = Number(dragEnd.active.id);
-        const toRenderIndex = Number(dragEnd.over.id);
-
-        pdfActions.reorderPage(
-          { index: fromRenderIndex, shift: activeShift },
-          { index: toRenderIndex, shift: overShift || 0 }
-        );
-        setPageLists({
-          type: "reorderPage",
-          fromRenderIndex,
-          toRenderIndex,
-        });
-      }
     },
     [pdfActions, setPageLists]
   );
@@ -356,6 +333,28 @@ export const Pdf = ({ url, name, dispatchFileUrls, index }: PdfProps) => {
     [dispatchFileUrls, pageLists, pdfActions, setPageLists, url, name]
   );
 
+  const onDropEnd = (res: DropResult, shift: { sourceShift: number; destinationShift: number }) => {
+    const { destination, source } = res;
+
+    if (!destination) {
+      return;
+    }
+
+    if (destination.index === source.index) {
+      return;
+    }
+
+    setPageLists({
+      type: "reorderPage",
+      toRenderIndex: destination.index,
+      fromRenderIndex: source.index,
+    });
+
+    pdfActions.reorderPage(
+      { index: source.index, shift: shift.sourceShift },
+      { index: destination.index, shift: shift.destinationShift }
+    );
+  };
   return (
     <PdfDocument
       url={url}
@@ -366,27 +365,38 @@ export const Pdf = ({ url, name, dispatchFileUrls, index }: PdfProps) => {
     >
       <div className="mx-[10%]">
         <PdfTopMenu title={name} onClose={onClose} />
-        <PageHolder>
-          {(() => {
-            if (pdfState.state === "error") {
-              return <PdfLoadError onRetry={onRetry} onLoadNewFile={onLoadNewFile} />;
-            } else if (pdfState.state === "loading") {
-              return <PdfLoading />;
-            } else if (pdfState.state === "success" && pageLists !== undefined) {
-              return (
-                <PdfPageLists
-                  onRemove={onRemove}
-                  onRotate={onRotate}
-                  pageLists={pageLists}
-                  onDragEnd={onDragEnd}
-                  onToggleSelect={onSelectCheck}
-                />
-              );
-            } else {
-              return <div></div>;
-            }
-          })()}
-        </PageHolder>
+        {(() => {
+          if (pdfState.state === "error") {
+            return (
+              <PageHolder>
+                <PdfLoadError onRetry={onRetry} onLoadNewFile={onLoadNewFile} />;
+              </PageHolder>
+            );
+          } else if (pdfState.state === "loading") {
+            return (
+              <PageHolder>
+                <PdfLoading />;
+              </PageHolder>
+            );
+          } else if (pdfState.state === "success" && pageLists !== undefined) {
+            return (
+              <PdfPageLists
+                onRemove={onRemove}
+                onRotate={onRotate}
+                pageLists={pageLists}
+                onToggleSelect={onSelectCheck}
+                onDropEnd={onDropEnd}
+                url={url}
+              />
+            );
+          } else {
+            return (
+              <PageHolder>
+                <div></div>;
+              </PageHolder>
+            );
+          }
+        })()}
         <PageMenu
           onUndo={onUndo}
           disableUndo={!pdfActions.canUndo()}

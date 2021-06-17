@@ -1,8 +1,7 @@
 import React from "react";
 import { PdfPage } from "./pdfPage";
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
 import { PageInfo } from "../../hooks/usePageLists";
+import { Droppable, DragDropContext, DropResult } from "react-beautiful-dnd";
 
 type PdfPageListsProps = {
   onRemove: (
@@ -14,65 +13,79 @@ type PdfPageListsProps = {
     dir: "left" | "right",
     shift: number
   ) => (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
-  onDragEnd: (
-    dragEnd: DragEndEvent,
-    shift: { activeShift: number; overShift: number | null }
-  ) => void;
+  onDropEnd: (res: DropResult, shift: { destinationShift: number; sourceShift: number }) => void;
   onToggleSelect: (
     renderIndex: number,
     shift: number
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 
   pageLists: PageInfo[];
+  url: string;
 };
 
 export const PdfPageLists = ({
   onRemove,
   onRotate,
   pageLists,
-  onDragEnd,
   onToggleSelect,
+  onDropEnd,
+  url,
 }: PdfPageListsProps) => {
   let shift = 0;
-  const indexToShift = new Map<string, number>();
+  const indexToShift = new Map<number, number>();
 
-  const convert = (dragEndEvent: DragEndEvent) => {
-    if (dragEndEvent.active.id === dragEndEvent.over?.id) {
-      return;
-    }
+  const convert = (res: DropResult) => {
+    const { destination, source } = res;
 
-    const activeShift = indexToShift.get(dragEndEvent.active.id)!;
-    const overShift = dragEndEvent.over ? indexToShift.get(dragEndEvent.over.id)! : null;
+    console.log({ res });
 
-    onDragEnd(dragEndEvent, { activeShift, overShift });
+    if (!destination) return;
+    if (destination.index === source.index) return;
+
+    const destinationShift = indexToShift.get(destination.index)!;
+    const sourceShift = indexToShift.get(source.index)!;
+
+    onDropEnd(res, { destinationShift, sourceShift });
   };
 
   return (
-    <DndContext onDragEnd={convert}>
-      <SortableContext items={pageLists.map((_, i) => `${i}`)}>
-        <div className="flex flex-wrap">
-          {pageLists.map((info, i) => {
-            if (!info.render) {
-              shift++;
-            }
+    <DragDropContext onDragEnd={convert}>
+      <Droppable droppableId={url} direction="horizontal">
+        {({ droppableProps, innerRef, placeholder }) => {
+          return (
+            <div
+              className="border-2 border-gray-300 max-h-[400px] overflow-auto"
+              ref={innerRef}
+              {...droppableProps}
+            >
+              <div className="flex mb-20">
+                {pageLists.map((info, i) => {
+                  if (!info.render) {
+                    shift++;
+                  }
 
-            indexToShift.set(`${i}`, shift);
+                  indexToShift.set(i, shift);
 
-            return (
-              <PdfPage
-                pageInfo={info}
-                onRotateRight={onRotate(i, "right", shift)}
-                onRotateLeft={onRotate(i, "left", shift)}
-                onRemove={onRemove(i, shift)}
-                key={info.index}
-                renderIndex={i}
-                disabled={!info.render}
-                onToggleSelect={onToggleSelect(i, shift)}
-              />
-            );
-          })}
-        </div>
-      </SortableContext>
-    </DndContext>
+                  return (
+                    <PdfPage
+                      pageInfo={info}
+                      onRotateRight={onRotate(i, "right", shift)}
+                      onRotateLeft={onRotate(i, "left", shift)}
+                      onRemove={onRemove(i, shift)}
+                      key={info.index}
+                      renderIndex={i}
+                      disabled={!info.render}
+                      onToggleSelect={onToggleSelect(i, shift)}
+                      url={url}
+                    />
+                  );
+                })}
+                {placeholder}
+              </div>
+            </div>
+          );
+        }}
+      </Droppable>
+    </DragDropContext>
   );
 };

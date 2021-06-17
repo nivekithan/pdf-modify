@@ -2,17 +2,17 @@ import React from "react";
 import { Upload } from "./components/files/upload";
 import { pdfjs } from "react-pdf";
 import { Pdf } from "./components/pdf";
-
 import { convertToArrayBuffer } from "./utils/convertToArrayBuffer";
 import { NavBar } from "./components/navBar";
+import { AddMoreFiles } from "./components/files/addMoreFiles";
+import { useFileUrls } from "./hooks/useFileUrls";
+import { DragDropContext, DropResult } from "react-beautiful-dnd";
 
 // Windicss generated css file
 import "virtual:windi.css";
 
 // CSS for react-spinner
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
-import { AddMoreFiles } from "./components/files/addMoreFiles";
-import { useFileUrls } from "./hooks/useFileUrls";
 
 // react-pdf requires this to work properly
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
