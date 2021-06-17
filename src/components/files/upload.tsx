@@ -1,13 +1,5 @@
 import React, { useRef, useCallback } from "react";
-
-export const pdfAccept = [
-  ".pdf",
-  "application/pdf",
-  "application/x-pdf",
-  "application/vnd.pdf",
-  "text/pdf",
-  "text/x-pdf",
-].join(",");
+import { PdfInput } from "./pdfInput";
 
 type UploadProps = {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -33,13 +25,7 @@ export const Upload = ({ onChange }: UploadProps) => {
 
   return (
     <div>
-      <input
-        type="file"
-        ref={originalFileInput}
-        accept={pdfAccept}
-        className="hidden"
-        onChange={onChange}
-      />
+      <PdfInput multiple onChange={onChange} ref={originalFileInput} />
       <button
         className="bg-blue-600 text-white text-2xl px-10 py-5 rounded-md grid place-items-center hover:bg-blue-800"
         onClick={onClickOpenFilePicker}

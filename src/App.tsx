@@ -82,14 +82,15 @@ export const App = () => {
           </div>
         </section>
       </div>
-      <div className="flex flex-col gap-y-2">
+      <div className="flex flex-col gap-y-20">
         {fileUrls.length > 0
-          ? fileUrls.map((value) => (
+          ? fileUrls.map((value, i) => (
               <Pdf
                 url={value.url}
                 name={value.name}
                 key={value.url}
                 dispatchFileUrls={dispatchFileUrls}
+                index={i}
               />
             ))
           : null}

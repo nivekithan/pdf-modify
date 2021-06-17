@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { ReactComponent as AddFiles } from "../../svg/addFiles.svg";
-import { pdfAccept } from "./upload";
+import { PdfInput } from "./pdfInput";
 
 type AddMoreFilesProps = {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -18,14 +18,7 @@ export const AddMoreFiles = ({ onChange }: AddMoreFilesProps) => {
 
   return (
     <div className="grid place-items-center mb-20">
-      <input
-        type="file"
-        className="hidden"
-        accept={pdfAccept}
-        ref={fileOpenerRef}
-        onChange={onChange}
-        multiple
-      />
+      <PdfInput multiple onChange={onChange} ref={fileOpenerRef} />
       <button
         className="rounded-md font-semibold flex flex-col items-center  hover:bg-white-hover p-5"
         onClick={onClick}

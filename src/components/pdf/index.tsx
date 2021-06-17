@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import { PageIndex, PdfActions } from "../../pdfActions/pdfActions";
 import { downloadLink } from "../../utils/downloadLink";
 import { PdfDocument } from "./pdfDocument";
@@ -13,19 +13,23 @@ import { usePageLists } from "../../hooks/usePageLists";
 import { PDFDocument, degrees } from "pdf-lib";
 import { FileUrlsActions } from "../../hooks/useFileUrls";
 import { urlToArrayBuffer } from "../../utils/urlToArrayBuffer";
+import { PdfTopMenu } from "./pdfTopMenu";
+import { convertToArrayBuffer } from "../../utils/convertToArrayBuffer";
 
 type PdfProps = {
   url: string;
   name: string;
+  index: number;
   dispatchFileUrls: (actions: FileUrlsActions) => void;
 };
 
-export const Pdf = ({ url, name, dispatchFileUrls }: PdfProps) => {
+export const Pdf = ({ url, name, dispatchFileUrls, index }: PdfProps) => {
   const [pageLists, setPageLists] = usePageLists();
   const [pdfState, onLoadingSuccess, onLoadingError, onLoadingProgress] = usePdfState(
     (pageNumber, pageRotation) =>
       setPageLists({ type: "create", totalPageNumber: pageNumber, pageRotation })
   );
+  const [docKey, setDocKey] = useState(0);
 
   const pdfActions = useMemo(() => {
     return new PdfActions(url);
@@ -99,11 +103,66 @@ export const Pdf = ({ url, name, dispatchFileUrls }: PdfProps) => {
     [pdfActions, setPageLists]
   );
 
-  const onDownload = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const onDownload = useCallback(
+    async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      e.preventDefault();
+
+      if (!pageLists) {
+        return;
+      }
+      const link = await pdfActions.getNewPdfLink();
+      downloadLink(link);
+    },
+    [pageLists, pdfActions]
+  );
+
+  const onClose = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      e.preventDefault();
+      URL.revokeObjectURL(url);
+      dispatchFileUrls({
+        type: "removeFile",
+        index,
+      });
+    },
+    [dispatchFileUrls, index, url]
+  );
+
+  const onRetry = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
-    const link = await pdfActions.getNewPdfLink();
-    downloadLink(link);
-  };
+    setDocKey((n) => ++n);
+  }, []);
+
+  const onLoadNewFile = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.currentTarget.files;
+
+      if (!files || files.length > 1) {
+        throw new Error(
+          "This event listener should only be attached to a input element whose type is file and multiple is set to false"
+        );
+      }
+
+      if (files.length === 0) {
+        dispatchFileUrls({ type: "removeFile", index });
+        e.target.value = "";
+        return;
+      }
+
+      const fileArr = Array.from(files);
+
+      const arrayBuffers = await Promise.all(fileArr.map(convertToArrayBuffer));
+      const urls = arrayBuffers.map((buffers, i) => {
+        const blob = new Blob([buffers], { type: "application/pdf" });
+        return { url: URL.createObjectURL(blob), name: fileArr[i].name };
+      });
+
+      dispatchFileUrls({ type: "replaceFile", index, pdfFile: urls[0] });
+
+      e.target.value = "";
+    },
+    [dispatchFileUrls, index]
+  );
 
   const onUndo = useCallback(
     (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -224,11 +283,11 @@ export const Pdf = ({ url, name, dispatchFileUrls }: PdfProps) => {
     async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.preventDefault();
 
-      const [renderIndexes, pageIndexes] = (() => {
-        if (!pageLists) {
-          throw new Error("The pdf has not been loaded yet");
-        }
+      if (!pageLists) {
+        return;
+      }
 
+      const [renderIndexes, pageIndexes] = (() => {
         let shift = 0;
         const renderIndexes: PageIndex[] = [];
         const pageIndexes: { index: number; rotation: number }[] = [];
@@ -280,9 +339,17 @@ export const Pdf = ({ url, name, dispatchFileUrls }: PdfProps) => {
           return URL.createObjectURL(bolb);
         })();
 
+        const newFileName = (() => {
+          const splitName = name.split(".");
+          const exten = splitName.pop();
+          splitName.push("-split");
+          splitName.push(exten || "");
+          return splitName.join("");
+        })();
+
         dispatchFileUrls({
           type: "pushNewFiles",
-          files: [{ name: `${name}-split.pdf`, url: newUrl }],
+          files: [{ name: newFileName, url: newUrl }],
         });
       }
     },
@@ -295,12 +362,14 @@ export const Pdf = ({ url, name, dispatchFileUrls }: PdfProps) => {
       onLoadSuccess={onLoadingSuccess}
       onLoadError={onLoadingError}
       onLoadProgress={onLoadingProgress}
+      key={docKey}
     >
-      <div className="mx-[10%] mb-20">
+      <div className="mx-[10%]">
+        <PdfTopMenu title={name} onClose={onClose} />
         <PageHolder>
           {(() => {
             if (pdfState.state === "error") {
-              return <PdfLoadError />;
+              return <PdfLoadError onRetry={onRetry} onLoadNewFile={onLoadNewFile} />;
             } else if (pdfState.state === "loading") {
               return <PdfLoading />;
             } else if (pdfState.state === "success" && pageLists !== undefined) {
