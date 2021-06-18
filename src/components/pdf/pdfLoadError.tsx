@@ -1,14 +1,19 @@
 import React, { useRef } from "react";
+import { usePdfFile } from "src/context/pdfFileProvider";
+import { useAppDispatch } from "src/hooks/store";
+import { convertToArrayBuffer } from "src/utils/convertToArrayBuffer";
+import { replaceFile } from "~store";
 import { ReactComponent as LoadError } from "../../svg/load-error.svg";
 import { PdfInput } from "../files/pdfInput";
 
 type PdfLoadErrorProps = {
   onRetry: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  onLoadNewFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-export const PdfLoadError = ({ onRetry, onLoadNewFile }: PdfLoadErrorProps) => {
+export const PdfLoadError = ({ onRetry }: PdfLoadErrorProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const dispatch = useAppDispatch();
+  const { index } = usePdfFile();
 
   const onUploadAnotherFile = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
@@ -16,6 +21,36 @@ export const PdfLoadError = ({ onRetry, onLoadNewFile }: PdfLoadErrorProps) => {
     if (inputRef.current) {
       inputRef.current.click();
     }
+  };
+
+  const onLoadNewFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.currentTarget.files;
+
+    if (!files) {
+      throw new Error("You have to use this listener only in input element whose type is file");
+    }
+
+    const fileArr = Array.from(files);
+
+    const buffer = await Promise.all(fileArr.map(convertToArrayBuffer));
+    const [fileInfo] = buffer.map((buf) => {
+      const bold = new Blob([buf], { type: "application/pdf" });
+      return { url: URL.createObjectURL(bold), name: fileArr[0].name };
+    });
+
+    dispatch(
+      replaceFile({
+        index,
+        pdfFile: {
+          name: fileInfo.name,
+          indexArr: [],
+          initialRotation: [],
+          pages: [],
+          renderArr: [],
+        },
+        url: fileInfo.url,
+      })
+    );
   };
 
   return (

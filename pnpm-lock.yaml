@@ -1,12 +1,12 @@
 lockfileVersion: 5.3
 
 specifiers:
+  '@reduxjs/toolkit': ^1.6.0
   '@types/node': ^15.12.2
   '@types/react': ^17.0.0
   '@types/react-beautiful-dnd': ^13.0.0
   '@types/react-dom': ^17.0.0
   '@types/react-pdf': ^5.0.3
-  '@types/react-virtualized': ^9.21.11
   '@typescript-eslint/eslint-plugin': ^4.26.1
   '@typescript-eslint/parser': ^4.26.1
   '@vitejs/plugin-react-refresh': ^1.3.1
@@ -21,9 +21,9 @@ specifiers:
   react: ^17.0.2
   react-beautiful-dnd: ^13.1.0
   react-dom: ^17.0.2
-  react-icons: ^4.2.0
   react-loader-spinner: ^4.0.0
   react-pdf: ^5.3.0
+  react-redux: ^7.2.4
   typescript: ^4.3.2
   use-immer: ^0.5.2
   vite: ^2.3.7
@@ -32,14 +32,15 @@ specifiers:
   windicss: ^3.1.3
 
 dependencies:
+  '@reduxjs/toolkit': 1.6.0_react-redux@7.2.4+react@17.0.2
   immer: 9.0.3
   pdf-lib: 1.16.0
   react: 17.0.2
   react-beautiful-dnd: 13.1.0_react-dom@17.0.2+react@17.0.2
   react-dom: 17.0.2_react@17.0.2
-  react-icons: 4.2.0_react@17.0.2
   react-loader-spinner: 4.0.0_react-dom@17.0.2+react@17.0.2
   react-pdf: 5.3.0_react-dom@17.0.2+react@17.0.2
+  react-redux: 7.2.4_react-dom@17.0.2+react@17.0.2
   use-immer: 0.5.2_immer@9.0.3+react@17.0.2
 
 devDependencies:
@@ -48,7 +49,6 @@ devDependencies:
   '@types/react-beautiful-dnd': 13.0.0
   '@types/react-dom': 17.0.7
   '@types/react-pdf': 5.0.3
-  '@types/react-virtualized': 9.21.11
   '@typescript-eslint/eslint-plugin': 4.26.1_c8cbd5e7f5f92609ec78d991aced454b
   '@typescript-eslint/parser': 4.26.1_eslint@7.28.0+typescript@4.3.2
   '@vitejs/plugin-react-refresh': 1.3.3
@@ -421,6 +421,25 @@ packages:
       pako: 1.0.11
     dev: false
 
+  /@reduxjs/toolkit/1.6.0_react-redux@7.2.4+react@17.0.2:
+    resolution: {integrity: sha512-eGL50G+Vj5AG5uD0lineb6rRtbs96M8+hxbcwkHpZ8LQcmt0Bm33WyBSnj5AweLkjQ7ZP+KFRDHiLMznljRQ3A==}
+    peerDependencies:
+      react: ^16.14.0 || ^17.0.0
+      react-redux: ^7.2.1
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-redux:
+        optional: true
+    dependencies:
+      immer: 9.0.3
+      react: 17.0.2
+      react-redux: 7.2.4_react-dom@17.0.2+react@17.0.2
+      redux: 4.1.0
+      redux-thunk: 2.3.0
+      reselect: 4.0.0
+    dev: false
+
   /@svgr/babel-plugin-add-jsx-attribute/5.4.0:
     resolution: {integrity: sha512-ZFf2gs/8/6B8PnSofI0inYXr2SDNTDScPXhN7k5EqD4aZ3gi6u+rbmZHVB8IM3wDyx8ntKACZbtXSm7oZGRqVg==}
     engines: {node: '>=10'}
@@ -561,13 +580,6 @@ packages:
       hoist-non-react-statics: 3.3.2
       redux: 4.1.0
     dev: false
-
-  /@types/react-virtualized/9.21.11:
-    resolution: {integrity: sha512-ngNe2AY/2CHuZQstOS0Jo5jnSjeyKTdSgqrXCQEltRMXLp9rwPUpJdgkoWzES6wn427Z8zo8dkBN8Sx7hlRmig==}
-    dependencies:
-      '@types/prop-types': 15.7.3
-      '@types/react': 17.0.11
-    dev: true
 
   /@types/react/17.0.11:
     resolution: {integrity: sha512-yFRQbD+whVonItSk7ZzP/L+gPTJVBkL/7shLEF+i9GC/1cV3JmUxEQz6+9ylhUpWSDuqo1N9qEvqS6vTj4USUA==}
@@ -2590,14 +2602,6 @@ packages:
       scheduler: 0.20.2
     dev: false
 
-  /react-icons/4.2.0_react@17.0.2:
-    resolution: {integrity: sha512-rmzEDFt+AVXRzD7zDE21gcxyBizD/3NqjbX6cmViAgdqfJ2UiLer8927/QhhrXQV7dEj/1EGuOTPp7JnLYVJKQ==}
-    peerDependencies:
-      react: '*'
-    dependencies:
-      react: 17.0.2
-    dev: false
-
   /react-is/16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -2667,6 +2671,10 @@ packages:
       object-assign: 4.1.1
     dev: false
 
+  /redux-thunk/2.3.0:
+    resolution: {integrity: sha512-km6dclyFnmcvxhAcrQV2AkZmPQjzPDjgVlQtR0EQjxZPyJ0BnMf3in1ryuR8A2qU0HldVRfxYXbFSKlI3N7Slw==}
+    dev: false
+
   /redux/4.1.0:
     resolution: {integrity: sha512-uI2dQN43zqLWCt6B/BMGRMY6db7TTY4qeHHfGeKb3EOhmOKjU3KdWvNLJyqaHRksv/ErdNH7cFZWg9jXtewy4g==}
     dependencies:
@@ -2700,6 +2708,10 @@ packages:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
     dev: true
+
+  /reselect/4.0.0:
+    resolution: {integrity: sha512-qUgANli03jjAyGlnbYVAV5vvnOmJnODyABz51RdBN7M4WaVu8mecZWgyQNkG8Yqe3KRGRt0l4K4B3XVEULC4CA==}
+    dev: false
 
   /resolve-from/4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}

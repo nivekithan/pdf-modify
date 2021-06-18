@@ -1,8 +1,8 @@
 import { Document, pdfjs, LoadingProcessData } from "react-pdf";
 import React from "react";
+import { usePdfFile } from "src/context/pdfFileProvider";
 
 type PdfDocumentProps = {
-  url: string;
   children: React.ReactNode;
 
   onLoadSuccess: (pdf: pdfjs.PDFDocumentProxy) => void;
@@ -11,12 +11,13 @@ type PdfDocumentProps = {
 };
 
 export const PdfDocument = ({
-  url,
   children,
   onLoadSuccess,
   onLoadError,
   onLoadProgress,
 }: PdfDocumentProps) => {
+  const { url } = usePdfFile();
+
   return (
     <Document
       file={url}

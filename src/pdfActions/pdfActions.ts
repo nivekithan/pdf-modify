@@ -9,10 +9,7 @@ export type Actions =
   | SelectPageAction
   | RemoveMultiplePageAction;
 
-export type PageIndex = {
-  index: number;
-  shift: number;
-};
+export type PageIndex = number;
 
 export type RemovePageAction = {
   type: "removePage";
@@ -163,44 +160,7 @@ export class PdfActions {
   }
 
   async getNewPdfLink() {
-    if (this.actions.length === 0) {
-      return this.url;
-    }
-
-    const currPdf = await PDFDocument.load(await urlToArrayBuffer(this.url));
-
-    this.actions.forEach((action) => {
-      switch (action.type) {
-        case "selectPage":
-          // These actions have no so effect on pdf, only reason these actions were recorded
-          // was to provide undo, redo, reset functionality.So we can safely ignore those actions
-          break;
-
-        case "removePage":
-          currPdf.removePage(action.pageIndex.index - action.pageIndex.shift);
-          break;
-        case "rotatePage":
-          currPdf
-            .getPage(action.pageIndex.index - action.pageIndex.shift)
-            .setRotation(degrees(action.degree));
-          break;
-        case "reorderPage":
-          this.reorder(
-            currPdf,
-            action.fromPageIndex.index - action.fromPageIndex.shift,
-            action.toPageIndex.index - action.toPageIndex.shift
-          );
-          break;
-        case "removeMultiplePage":
-          action.pageIndexes.forEach(({ index, shift }) => {
-            currPdf.removePage(index - shift);
-          });
-          break;
-      }
-    });
-
-    const newUint8Array = await currPdf.save();
-    return URL.createObjectURL(new Blob([newUint8Array.buffer], { type: "application/pdf" }));
+    return this.url;
   }
 
   private reorder(pdf: PDFDocument, fromPageIndex: number, toPageIndex: number) {

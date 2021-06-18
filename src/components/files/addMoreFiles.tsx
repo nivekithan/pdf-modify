@@ -1,13 +1,13 @@
 import React, { useRef } from "react";
+import { useAppDispatch } from "~hooks/store";
+import { pushNewFiles } from "~store";
+import { convertToArrayBuffer } from "~utils/convertToArrayBuffer";
 import { ReactComponent as AddFiles } from "../../svg/addFiles.svg";
 import { PdfInput } from "./pdfInput";
 
-type AddMoreFilesProps = {
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-};
-
-export const AddMoreFiles = ({ onChange }: AddMoreFilesProps) => {
+export const AddMoreFiles = () => {
   const fileOpenerRef = useRef<HTMLInputElement | null>(null);
+  const dispatch = useAppDispatch();
 
   const onClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
@@ -16,9 +16,39 @@ export const AddMoreFiles = ({ onChange }: AddMoreFilesProps) => {
     }
   };
 
+  const onChangePushFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.currentTarget.files;
+
+    if (!files) {
+      throw new Error(`Attach event listener on only input element whose type="file"`);
+    }
+
+    const fileArr = Array.from(files);
+
+    const arrayBuffers = await Promise.all(fileArr.map(convertToArrayBuffer));
+    const infos = arrayBuffers.map((buffers, i) => {
+      const blob = new Blob([buffers], { type: "application/pdf" });
+      return { url: URL.createObjectURL(blob), name: fileArr[i].name };
+    });
+
+    e.target.value = "";
+
+    dispatch(
+      pushNewFiles({
+        pdf: infos.map((v) => ({
+          name: v.name,
+          indexArr: [],
+          initialRotation: [],
+          pages: [],
+          renderArr: [],
+        })),
+        urlArr: infos.map((v) => v.url),
+      })
+    );
+  };
   return (
     <div className="grid place-items-center mb-20">
-      <PdfInput multiple onChange={onChange} ref={fileOpenerRef} />
+      <PdfInput multiple onChange={onChangePushFiles} ref={fileOpenerRef} />
       <button
         className="rounded-md font-semibold flex flex-col items-center  hover:bg-white-hover p-5"
         onClick={onClick}
