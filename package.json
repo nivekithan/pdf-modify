@@ -10,6 +10,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.0",
     "immer": "^9.0.3",
+    "nanoid": "^3.1.23",
     "pdf-lib": "^1.16.0",
     "react": "^17.0.2",
     "react-beautiful-dnd": "^13.1.0",

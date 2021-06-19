@@ -1,6 +1,6 @@
 import React, { createContext } from "react";
 import { useContext } from "react";
-import { PdfActions } from "src/pdfActions/pdfActions";
+import { PdfActions } from "src/pdfUtils/pdfActions";
 
 const pdfAction = createContext<PdfActions | null>(null);
 

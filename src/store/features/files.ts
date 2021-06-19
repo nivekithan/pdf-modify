@@ -1,6 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { arrayInsertMutate } from "~utils/arrayInsertMutate";
 import { arrayMoveMutate } from "../../utils/arrayMoveMutate";
 import { wrapDegree } from "../../utils/wrapDegree";
+import { current } from "immer";
+import { nanoid } from "nanoid";
 
 export type PdfPage = {
   rotation: number;
@@ -10,10 +13,15 @@ export type PdfPage = {
 export type Pdf = {
   name: string;
   pages: PdfPage[];
+
   initialRotation: number[];
+  initialUniqueArr: string[];
 
   indexArr: number[];
   renderArr: boolean[];
+  srcUrl: (string | undefined)[];
+
+  uniqueArr: string[];
 
   undoLength: number;
   redoLength: number;
@@ -106,47 +114,57 @@ export const fileSlice = createSlice({
     ) => {
       const { fileIndex, pageRotation, totalPageNumber } = action.payload;
 
-      const [pages, indexArr, renderArr] = Array(totalPageNumber)
+      const [pages, indexArr, renderArr, srcArr, uniqueArr] = Array(totalPageNumber)
         .fill(0)
         .reduce(
-          (prev: [PdfPage[], number[], boolean[]], curr: any, i) => {
+          (prev: [PdfPage[], number[], boolean[], undefined[], string[]], curr: any, i) => {
             prev[0].push({ rotation: pageRotation[i], selected: false });
             prev[1].push(i);
             prev[2].push(true);
+            prev[3].push(undefined);
+            prev[4].push(nanoid());
             return prev;
           },
-          [[], [], []]
+          [[], [], [], [], []]
         );
 
       state.pdf[fileIndex].pages = pages;
       state.pdf[fileIndex].indexArr = indexArr;
       state.pdf[fileIndex].renderArr = renderArr;
       state.pdf[fileIndex].initialRotation = pageRotation;
+      state.pdf[fileIndex].srcUrl = srcArr;
+      state.pdf[fileIndex].uniqueArr = uniqueArr;
+      state.pdf[fileIndex].initialUniqueArr = uniqueArr;
 
       return state;
     },
 
     resetPagesInFile: (state, action: PayloadAction<{ fileIndex: number }>) => {
       const { fileIndex } = action.payload;
-      const totalPageNumber = state.pdf[fileIndex].pages.length;
+      const totalPageNumber = state.pdf[fileIndex].initialRotation.length;
       const pageRotation = state.pdf[fileIndex].initialRotation;
+      const initialUniqueArr = state.pdf[fileIndex].initialUniqueArr;
 
-      const [pages, indexArr, renderArr] = Array(totalPageNumber)
+      const [pages, indexArr, renderArr, srcUrl, uniqueArr] = Array(totalPageNumber)
         .fill(0)
         .reduce(
-          (prev: [PdfPage[], number[], boolean[]], curr: any, i) => {
+          (prev: [PdfPage[], number[], boolean[], undefined[], string[]], curr: any, i) => {
             prev[0].push({ rotation: pageRotation[i], selected: false });
             prev[1].push(i);
             prev[2].push(true);
+            prev[3].push(undefined);
+            prev[4].push(initialUniqueArr[i]);
             return prev;
           },
-          [[], [], []]
+          [[], [], [], [], []]
         );
 
       state.pdf[fileIndex].pages = pages;
       state.pdf[fileIndex].indexArr = indexArr;
       state.pdf[fileIndex].renderArr = renderArr;
+      state.pdf[fileIndex].srcUrl = srcUrl;
       state.pdf[fileIndex].selectLength = 0;
+      state.pdf[fileIndex].uniqueArr = uniqueArr;
 
       return state;
     },
@@ -212,9 +230,13 @@ export const fileSlice = createSlice({
     ) => {
       const { fileIndex, fromRenderIndex, toRenderIndex } = action.payload;
       const pdfFile = state.pdf[fileIndex];
+
       arrayMoveMutate(pdfFile.pages, fromRenderIndex, toRenderIndex);
       arrayMoveMutate(pdfFile.indexArr, fromRenderIndex, toRenderIndex);
       arrayMoveMutate(pdfFile.renderArr, fromRenderIndex, toRenderIndex);
+      arrayMoveMutate(pdfFile.srcUrl, fromRenderIndex, toRenderIndex);
+      arrayMoveMutate(pdfFile.uniqueArr, fromRenderIndex, toRenderIndex);
+
       return state;
     },
 
@@ -228,6 +250,9 @@ export const fileSlice = createSlice({
       arrayMoveMutate(pdfFile.pages, toRenderIndex, fromRenderIndex);
       arrayMoveMutate(pdfFile.indexArr, fromRenderIndex, toRenderIndex);
       arrayMoveMutate(pdfFile.renderArr, fromRenderIndex, toRenderIndex);
+      arrayMoveMutate(pdfFile.srcUrl, fromRenderIndex, toRenderIndex);
+      arrayMoveMutate(pdfFile.uniqueArr, fromRenderIndex, toRenderIndex);
+
       return state;
     },
 
@@ -266,6 +291,45 @@ export const fileSlice = createSlice({
 
       return state;
     },
+
+    // Reducers for manipulating pdf pages between files
+
+    reorderPageBetweenFiles: (
+      state,
+      action: PayloadAction<{
+        from: { fileIndex: number; renderIndex: number };
+        to: { fileIndex: number; renderIndex: number };
+      }>
+    ) => {
+      const {
+        from: { fileIndex: fromFileIndex, renderIndex: fromRenderIndex },
+        to: { fileIndex: toFileIndex, renderIndex: toRenderIndex },
+      } = action.payload;
+
+      const fromFile = state.pdf[fromFileIndex];
+      const toFile = state.pdf[toFileIndex];
+
+      const fromSrcUrl = state.urlArr[fromFileIndex];
+      const fromPageRotation = state.pdf[fromFileIndex].pages[fromRenderIndex].rotation;
+
+      // Hiding Page from files
+      fromFile.renderArr[fromRenderIndex] = false;
+
+      if (fromFile.pages[fromRenderIndex].selected) {
+        fromFile.selectLength && fromFile.selectLength--;
+      }
+
+      // Add Page to ToFile;
+      arrayInsertMutate(toFile.indexArr, fromFile.indexArr[fromRenderIndex], toRenderIndex);
+      arrayInsertMutate(
+        toFile.pages,
+        { rotation: fromPageRotation, selected: false },
+        toRenderIndex
+      );
+      arrayInsertMutate(toFile.renderArr, true, toRenderIndex);
+      arrayInsertMutate(toFile.srcUrl, fromSrcUrl, toRenderIndex);
+      arrayInsertMutate(toFile.uniqueArr, nanoid(), toRenderIndex);
+    },
   },
 });
 
@@ -290,6 +354,7 @@ export const {
   increaseUndo,
   resetUndo,
   resetRedo,
+  reorderPageBetweenFiles,
 } = fileSlice.actions;
 
 export const fileReducer = fileSlice.reducer;

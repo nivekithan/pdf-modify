@@ -14,7 +14,8 @@ export type Actions =
   | RotatePageAction
   | ReorderPageAction
   | SelectPageAction
-  | RemoveMultiplePageAction;
+  | RemoveMultiplePageAction
+  | AddPageAction;
 
 export type PageIndex = number;
 
@@ -44,6 +45,11 @@ export type SelectPageAction = {
   type: "selectPage";
   pageIndex: PageIndex;
   select: boolean;
+};
+
+export type AddPageAction = {
+  type: "addPage";
+  pageIndex: PageIndex;
 };
 
 export class PdfActions {
@@ -131,6 +137,23 @@ export class PdfActions {
       type: "selectPage",
       pageIndex,
       select,
+    };
+
+    this.actions.push(newAction);
+    this.addUndo(dispatch, fileIndex);
+  }
+
+  addPage(
+    pageIndex: PageIndex,
+
+    dispatch: AppDispatch,
+    fileIndex: number
+  ) {
+    this.clearRedoActions(dispatch, fileIndex);
+
+    const newAction: AddPageAction = {
+      type: "addPage",
+      pageIndex,
     };
 
     this.actions.push(newAction);

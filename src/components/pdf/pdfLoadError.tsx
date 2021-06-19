@@ -50,6 +50,9 @@ export const PdfLoadError = ({ onRetry }: PdfLoadErrorProps) => {
           redoLength: 0,
           undoLength: 0,
           selectLength: 0,
+          srcUrl: [],
+          uniqueArr: [],
+          initialUniqueArr: [],
         },
         url: fileInfo.url,
       })

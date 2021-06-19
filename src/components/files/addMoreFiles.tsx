@@ -44,6 +44,8 @@ export const AddMoreFiles = () => {
           redoLength: 0,
           undoLength: 0,
           selectLength: 0,
+          srcUrl: [],
+          uniqueArr: [],
         })),
         urlArr: infos.map((v) => v.url),
       })

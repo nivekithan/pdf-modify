@@ -7,7 +7,7 @@ import { useAppSelector } from "src/hooks/store";
 export const PdfPageLists = () => {
   const { url, index: fileIndex } = usePdfFile();
   const totalLength = useAppSelector((state) => state.files.pdf[fileIndex].pages.length);
-  const indexArr = useAppSelector((s) => s.files.pdf[fileIndex].indexArr);
+  const uniqueArr = useAppSelector((state) => state.files.pdf[fileIndex].uniqueArr);
 
   return (
     <Droppable droppableId={url} direction="horizontal">
@@ -22,7 +22,7 @@ export const PdfPageLists = () => {
               {Array(totalLength)
                 .fill(0)
                 .map((_, i) => {
-                  return <PdfPage key={indexArr[i]} renderIndex={i} />;
+                  return <PdfPage key={uniqueArr[i]} renderIndex={i} />;
                 })}
               {placeholder}
             </div>

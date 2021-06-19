@@ -1,7 +1,6 @@
 import React, { useCallback } from "react";
 import { usePdfFile } from "src/context/pdfFileProvider";
 import { useAppDispatch, useAppSelector } from "src/hooks/store";
-import { urlToArrayBuffer } from "src/utils/urlToArrayBuffer";
 import {
   hidePageInFile,
   hidePageInFileReverse,
@@ -17,6 +16,8 @@ import {
 import { usePdfActions } from "~context/pdfActionProvider";
 import { PDFDocument, degrees } from "pdf-lib";
 import { downloadLink } from "~utils/downloadLink";
+import { PdfStore } from "src/pdfUtils/pdfStore";
+import { docToUrl } from "~utils/docToUrl";
 
 export const PageMenu = () => {
   const { index: fileIndex } = usePdfFile();
@@ -70,6 +71,8 @@ export const PageMenu = () => {
               dispatch(hidePageInFile({ fileIndex, renderIndex: i }));
             });
             break;
+          case "addPage":
+            dispatch(hidePageInFileReverse({ fileIndex, renderIndex: lastAction.pageIndex }));
         }
       } catch (err) {
         // TODO
@@ -121,6 +124,8 @@ export const PageMenu = () => {
               dispatch(hidePageInFileReverse({ fileIndex, renderIndex: i }));
             });
             break;
+          case "addPage":
+            dispatch(hidePageInFile({ fileIndex, renderIndex: lastAction.pageIndex }));
         }
       } catch (err) {
         // TODO
@@ -187,54 +192,58 @@ const Split = () => {
   const renderArr = useAppSelector((state) => state.files.pdf[fileIndex].renderArr);
   const indexArr = useAppSelector((state) => state.files.pdf[fileIndex].indexArr);
   const disableSplit = useAppSelector((state) => !(state.files.pdf[fileIndex].selectLength > 0));
+  const srcArr = useAppSelector((state) => state.files.pdf[fileIndex].srcUrl);
 
   const pdfAction = usePdfActions();
 
   const dispatch = useAppDispatch();
 
   const onSplit = useCallback(async () => {
-    const selectedRenderIndexes: number[] = [];
-    const selectedIndex: number[] = [];
-    const rotationIndex: number[] = [];
+    const externalSrcUrl: string[] = [];
 
-    renderArr.forEach((render, i) => {
-      if (pages[i].selected && render) {
-        selectedRenderIndexes.push(i);
-        selectedIndex.push(indexArr[i]);
-        rotationIndex.push(pages[i].rotation);
+    for (const url of srcArr) {
+      if (url) {
+        externalSrcUrl.push(url);
       }
-    });
+    }
 
-    const [loadedPdf, newPdf] = await Promise.all([
-      (async () => {
-        const arrayBuffer = await urlToArrayBuffer(url);
-        return PDFDocument.load(arrayBuffer);
-      })(),
+    const [newPdf, pdfStore] = await Promise.all([
       PDFDocument.create(),
+      PdfStore.loadStore([url, ...externalSrcUrl]),
     ]);
 
-    const copiedPages = await newPdf.copyPages(loadedPdf, selectedIndex);
+    let shift = 0;
+    const selectedRenderIndexes: number[] = [];
 
-    copiedPages.forEach((page, i) => {
-      newPdf.addPage(page);
-      const currPage = newPdf.getPage(i);
-      currPage.setRotation(degrees(rotationIndex[i]));
-    });
+    for (const [i, page] of pages.entries()) {
+      if (!renderArr[i]) {
+        shift++;
+        continue;
+      }
 
-    const uint8 = await newPdf.save();
+      if (!page.selected) {
+        shift++;
+        continue;
+      }
 
+      const currUrl = srcArr[i] || url;
+      const currIndex = indexArr[i];
+
+      const [copiedPage] = await newPdf.copyPages(pdfStore.getDocument(currUrl), [currIndex]);
+      newPdf.addPage(copiedPage);
+      const currPage = newPdf.getPage(i - shift);
+      currPage.setRotation(degrees(page.rotation));
+      selectedRenderIndexes.push(i);
+    }
+
+    const newUrl = await docToUrl(newPdf);
     const newFileName = (() => {
       const splitName = name.split(".");
       const extension = splitName.pop()!;
+      splitName.join("");
       splitName.push("-split");
       splitName.push(`.${extension}`);
-
       return splitName.join("");
-    })();
-
-    const newUrl = (() => {
-      const bolb = new Blob([uint8.buffer], { type: "application/pdf" });
-      return URL.createObjectURL(bolb);
     })();
 
     pdfAction.removeMultiplePage(selectedRenderIndexes, dispatch, fileIndex);
@@ -255,12 +264,15 @@ const Split = () => {
             redoLength: 0,
             undoLength: 0,
             selectLength: 0,
+            srcUrl: [],
+            uniqueArr: [],
+            initialUniqueArr: [],
           },
         ],
         urlArr: [newUrl],
       })
     );
-  }, [dispatch, fileIndex, indexArr, name, pages, pdfAction, renderArr, url]);
+  }, [dispatch, fileIndex, indexArr, name, pages, pdfAction, renderArr, srcArr, url]);
 
   return (
     <button
@@ -281,34 +293,43 @@ const ApplyChanges = () => {
   const pages = useAppSelector((state) => state.files.pdf[fileIndex].pages);
   const renderArr = useAppSelector((state) => state.files.pdf[fileIndex].renderArr);
   const indexArr = useAppSelector((state) => state.files.pdf[fileIndex].indexArr);
+  const srcArr = useAppSelector((state) => state.files.pdf[fileIndex].srcUrl);
 
   const onApplyChanges = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
-    const arrayBuffer = await urlToArrayBuffer(url);
-    const [pdfDoc, newPdfDoc] = await Promise.all([
-      PDFDocument.load(arrayBuffer),
-      PDFDocument.create(),
-    ]);
-    let shift = 0;
 
-    for (const [i, index] of indexArr.entries()) {
-      if (renderArr[i]) {
-        const [copyPages] = await newPdfDoc.copyPages(pdfDoc, [index]);
-        newPdfDoc.addPage(copyPages);
-        const currPage = newPdfDoc.getPage(i - shift);
-        currPage.setRotation(degrees(pages[i].rotation));
-      } else {
-        shift++;
+    const externalSrcUrl: string[] = [];
+
+    for (const url of srcArr) {
+      if (url) {
+        externalSrcUrl.push(url);
       }
     }
 
-    const uint8Arr = await newPdfDoc.save();
+    const [newPdf, pdfStore] = await Promise.all([
+      PDFDocument.create(),
+      PdfStore.loadStore([url, ...externalSrcUrl]),
+    ]);
+    let shift = 0;
 
-    const blob = new Blob([uint8Arr.buffer], { type: "application/pdf" });
-    const newUrl = URL.createObjectURL(blob);
+    for (const [i, page] of pages.entries()) {
+      if (!renderArr[i]) {
+        shift++;
+        continue;
+      }
+
+      const currUrl = srcArr[i] || url;
+      const currIndex = indexArr[i];
+
+      const [copiedPage] = await newPdf.copyPages(pdfStore.getDocument(currUrl), [currIndex]);
+      newPdf.addPage(copiedPage);
+      const currPage = newPdf.getPage(i - shift);
+      currPage.setRotation(degrees(page.rotation));
+    }
+
+    const newUrl = await docToUrl(newPdf);
 
     downloadLink(newUrl, name);
-
     URL.revokeObjectURL(newUrl);
   };
 

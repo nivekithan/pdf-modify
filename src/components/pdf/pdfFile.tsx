@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { PdfActions } from "../../pdfActions/pdfActions";
+import { PdfActions } from "../../pdfUtils/pdfActions";
 import { PdfDocument } from "./pdfDocument";
 import { PageHolder } from "./pageHolder";
 import { PageMenu } from "./pageMenu";

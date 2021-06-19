@@ -16,6 +16,7 @@ specifiers:
   eslint-plugin-react: ^7.23.2
   eslint-plugin-react-hooks: ^4.2.0
   immer: ^9.0.3
+  nanoid: ^3.1.23
   pdf-lib: ^1.16.0
   prettier: ^2.2.1
   react: ^17.0.2
@@ -34,6 +35,7 @@ specifiers:
 dependencies:
   '@reduxjs/toolkit': 1.6.0_react-redux@7.2.4+react@17.0.2
   immer: 9.0.3
+  nanoid: 3.1.23
   pdf-lib: 1.16.0
   react: 17.0.2
   react-beautiful-dnd: 13.1.0_react-dom@17.0.2+react@17.0.2
@@ -2310,7 +2312,6 @@ packages:
     resolution: {integrity: sha512-FiB0kzdP0FFVGDKlRLEQ1BgDzU87dy5NnzjeW9YZNt+/c3+q82EQDUwniSAUxp/F0gFNI1ZhKU1FqYsMuqZVnw==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
-    dev: true
 
   /natural-compare/1.4.0:
     resolution: {integrity: sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=}
