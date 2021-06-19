@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.0",
+    "@supabase/supabase-js": "^1.15.1",
     "immer": "^9.0.3",
     "nanoid": "^3.1.23",
     "pdf-lib": "^1.16.0",

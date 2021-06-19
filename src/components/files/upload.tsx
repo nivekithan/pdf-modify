@@ -55,6 +55,7 @@ export const Upload = () => {
           undoLength: 0,
           srcUrl: [],
           uniqueArr: [],
+          initialUniqueArr: [],
         })),
         urlArr: infos.map((v) => v.url),
       })

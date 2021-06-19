@@ -17,12 +17,17 @@ export const PdfTopMenu = () => {
       <h2 className="text-xl max-w-3/10 truncate">
         <span className="text-lg opacity-75">Filename :</span> {name || ""}
       </h2>
-      <button
-        className="bg-red-600 hover:bg-red-800 px-3 py-2 text-white rounded-md text-sm"
-        onClick={onClose}
-      >
-        Close
-      </button>
+      <div className="flex flex-wrap gap-x-2">
+        <button className="bg-indigo-600 hover:bg-indigo-800 px-3 py-2 text-white rounded-md text-sm">
+          Share
+        </button>
+        <button
+          className="bg-red-600 hover:bg-red-800 px-3 py-2 text-white rounded-md text-sm"
+          onClick={onClose}
+        >
+          Close
+        </button>
+      </div>
     </div>
   );
 };
