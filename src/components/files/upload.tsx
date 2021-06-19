@@ -50,6 +50,9 @@ export const Upload = () => {
           initialRotation: [],
           pages: [],
           renderArr: [],
+          redoLength: 0,
+          selectLength: 0,
+          undoLength: 0,
         })),
         urlArr: infos.map((v) => v.url),
       })

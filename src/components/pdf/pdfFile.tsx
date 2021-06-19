@@ -1,6 +1,5 @@
-import React, { useMemo, useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { PdfActions } from "../../pdfActions/pdfActions";
-import { downloadLink } from "../../utils/downloadLink";
 import { PdfDocument } from "./pdfDocument";
 import { PageHolder } from "./pageHolder";
 import { PageMenu } from "./pageMenu";
@@ -16,9 +15,10 @@ import { PdfFileProvider } from "~context/pdfFileProvider";
 
 type PdfProps = {
   index: number;
+  pdfActions: PdfActions;
 };
 
-export const PdfFile = ({ index }: PdfProps) => {
+export const PdfFile = ({ index, pdfActions }: PdfProps) => {
   const dispatch = useAppDispatch();
   const url = useAppSelector((state) => state.files.urlArr[index]);
   const name = useAppSelector((state) => state.files.pdf[index].name);
@@ -29,10 +29,6 @@ export const PdfFile = ({ index }: PdfProps) => {
   );
 
   const [docKey, setDocKey] = useState(0);
-
-  const pdfActions = useMemo(() => {
-    return new PdfActions(url);
-  }, [url]);
 
   const onRetry = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
@@ -73,11 +69,7 @@ export const PdfFile = ({ index }: PdfProps) => {
                 );
               }
             })()}
-            <PageMenu
-              disableUndo={!pdfActions.canUndo()}
-              disableRedo={!pdfActions.canRedo()}
-              disableReset={!pdfActions.canReset()}
-            />
+            <PageMenu />
           </div>
         </PdfDocument>
       </PdfFileProvider>

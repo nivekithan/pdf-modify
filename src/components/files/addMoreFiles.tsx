@@ -41,6 +41,9 @@ export const AddMoreFiles = () => {
           initialRotation: [],
           pages: [],
           renderArr: [],
+          redoLength: 0,
+          undoLength: 0,
+          selectLength: 0,
         })),
         urlArr: infos.map((v) => v.url),
       })

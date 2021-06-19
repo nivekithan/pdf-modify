@@ -1,6 +1,6 @@
 import React from "react";
 import { PdfPage } from "./pdfPage";
-import { Droppable, DragDropContext } from "react-beautiful-dnd";
+import { Droppable } from "react-beautiful-dnd";
 import { usePdfFile } from "src/context/pdfFileProvider";
 import { useAppSelector } from "src/hooks/store";
 

@@ -18,25 +18,21 @@ import { usePdfActions } from "~context/pdfActionProvider";
 import { PDFDocument, degrees } from "pdf-lib";
 import { downloadLink } from "~utils/downloadLink";
 
-type PageMenuProps = {
-  disableUndo: boolean;
-
-  disableRedo: boolean;
-
-  disableReset: boolean;
-};
-
-export const PageMenu = ({ disableRedo, disableUndo, disableReset }: PageMenuProps) => {
+export const PageMenu = () => {
   const { index: fileIndex } = usePdfFile();
   const dispatch = useAppDispatch();
   const pdfActions = usePdfActions();
+
+  const disableRedo = useAppSelector((state) => !(state.files.pdf[fileIndex].redoLength > 0));
+  const disableUndo = useAppSelector((state) => !(state.files.pdf[fileIndex].undoLength > 0));
+  const disableReset = disableUndo && disableRedo;
 
   const onRedo = useCallback(
     (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.preventDefault();
 
       try {
-        const lastAction = pdfActions.redo();
+        const lastAction = pdfActions.redo(dispatch, fileIndex);
 
         switch (lastAction.type) {
           case "removePage":
@@ -87,7 +83,7 @@ export const PageMenu = ({ disableRedo, disableUndo, disableReset }: PageMenuPro
       e.preventDefault();
 
       try {
-        const lastAction = pdfActions.undo();
+        const lastAction = pdfActions.undo(dispatch, fileIndex);
 
         switch (lastAction.type) {
           case "removePage":
@@ -137,7 +133,7 @@ export const PageMenu = ({ disableRedo, disableUndo, disableReset }: PageMenuPro
     e.preventDefault();
 
     try {
-      pdfActions.reset();
+      pdfActions.reset(dispatch, fileIndex);
       dispatch(resetPagesInFile({ fileIndex }));
     } catch (err) {
       // TODO
@@ -172,6 +168,7 @@ export const PageMenu = ({ disableRedo, disableUndo, disableReset }: PageMenuPro
             disableReset ? "opacity-50" : "hover:bg-red-700"
           }`}
           onClick={onReset}
+          disabled={disableReset}
         >
           Reset Changes
         </button>
@@ -189,6 +186,9 @@ const Split = () => {
   const pages = useAppSelector((state) => state.files.pdf[fileIndex].pages);
   const renderArr = useAppSelector((state) => state.files.pdf[fileIndex].renderArr);
   const indexArr = useAppSelector((state) => state.files.pdf[fileIndex].indexArr);
+  const disableSplit = useAppSelector((state) => !(state.files.pdf[fileIndex].selectLength > 0));
+
+  const pdfAction = usePdfActions();
 
   const dispatch = useAppDispatch();
 
@@ -212,8 +212,6 @@ const Split = () => {
       })(),
       PDFDocument.create(),
     ]);
-    console.log({ renderArr });
-    console.log({ selectedIndex, rotationIndex, selectedRenderIndexes });
 
     const copiedPages = await newPdf.copyPages(loadedPdf, selectedIndex);
 
@@ -239,22 +237,38 @@ const Split = () => {
       return URL.createObjectURL(bolb);
     })();
 
+    pdfAction.removeMultiplePage(selectedRenderIndexes, dispatch, fileIndex);
+
     selectedRenderIndexes.forEach((renderIndex) => {
       dispatch(hidePageInFile({ fileIndex, renderIndex }));
     });
 
     dispatch(
       pushNewFiles({
-        pdf: [{ name: newFileName, indexArr: [], initialRotation: [], pages: [], renderArr: [] }],
+        pdf: [
+          {
+            name: newFileName,
+            indexArr: [],
+            initialRotation: [],
+            pages: [],
+            renderArr: [],
+            redoLength: 0,
+            undoLength: 0,
+            selectLength: 0,
+          },
+        ],
         urlArr: [newUrl],
       })
     );
-  }, [dispatch, fileIndex, indexArr, name, pages, renderArr, url]);
+  }, [dispatch, fileIndex, indexArr, name, pages, pdfAction, renderArr, url]);
 
   return (
     <button
-      className={`bg-purple-600 text-white text-md font-semibold px-6 py-3 rounded-md ${"hover:bg-purple-800"}`}
+      className={`bg-purple-600 text-white text-md font-semibold px-6 py-3 rounded-md ${
+        disableSplit ? "opacity-50" : "hover:bg-purple-800"
+      }`}
       onClick={onSplit}
+      disabled={disableSplit}
     >
       Split PDF
     </button>

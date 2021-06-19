@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { arrayMoveMutate } from "../../utils/arrayMoveMutate";
 import { wrapDegree } from "../../utils/wrapDegree";
-import { current } from "immer";
 
 export type PdfPage = {
   rotation: number;
@@ -15,6 +14,10 @@ export type Pdf = {
 
   indexArr: number[];
   renderArr: boolean[];
+
+  undoLength: number;
+  redoLength: number;
+  selectLength: number;
 };
 
 export type Files = { pdf: Pdf[]; urlArr: string[] };
@@ -25,6 +28,49 @@ export const fileSlice = createSlice({
   name: "files",
   initialState,
   reducers: {
+    // Reducers for maintaining undo , redo, select length states;
+    increaseUndo: (state, action: PayloadAction<{ fileIndex: number }>) => {
+      const { fileIndex } = action.payload;
+
+      state.pdf[fileIndex].undoLength++;
+      return state;
+    },
+
+    decreaseUndo: (state, action: PayloadAction<{ fileIndex: number }>) => {
+      const { fileIndex } = action.payload;
+
+      state.pdf[fileIndex].undoLength && state.pdf[fileIndex].undoLength--;
+      return state;
+    },
+
+    resetUndo: (state, action: PayloadAction<{ fileIndex: number }>) => {
+      const { fileIndex } = action.payload;
+
+      state.pdf[fileIndex].undoLength = 0;
+      return state;
+    },
+
+    increaseRedo: (state, action: PayloadAction<{ fileIndex: number }>) => {
+      const { fileIndex } = action.payload;
+
+      state.pdf[fileIndex].redoLength++;
+      return state;
+    },
+
+    decreaseRedo: (state, action: PayloadAction<{ fileIndex: number }>) => {
+      const { fileIndex } = action.payload;
+
+      state.pdf[fileIndex].redoLength && state.pdf[fileIndex].redoLength--;
+      return state;
+    },
+
+    resetRedo: (state, action: PayloadAction<{ fileIndex: number }>) => {
+      const { fileIndex } = action.payload;
+
+      state.pdf[fileIndex].redoLength = 0;
+      return state;
+    },
+
     // File Reducers Responsible for adding, removing pdfFiles
 
     loadNewFiles: (state, action: PayloadAction<{ pdf: Pdf[]; urlArr: string[] }>) => {
@@ -91,7 +137,7 @@ export const fileSlice = createSlice({
           (prev: [PdfPage[], number[], boolean[]], curr: any, i) => {
             prev[0].push({ rotation: pageRotation[i], selected: false });
             prev[1].push(i);
-            prev[2].push(false);
+            prev[2].push(true);
             return prev;
           },
           [[], [], []]
@@ -100,6 +146,7 @@ export const fileSlice = createSlice({
       state.pdf[fileIndex].pages = pages;
       state.pdf[fileIndex].indexArr = indexArr;
       state.pdf[fileIndex].renderArr = renderArr;
+      state.pdf[fileIndex].selectLength = 0;
 
       return state;
     },
@@ -109,6 +156,11 @@ export const fileSlice = createSlice({
       const pdfFile = state.pdf[fileIndex];
 
       pdfFile.renderArr[renderIndex] = false;
+
+      if (pdfFile.pages[renderIndex].selected) {
+        pdfFile.selectLength && pdfFile.selectLength--;
+      }
+
       return state;
     },
 
@@ -117,8 +169,13 @@ export const fileSlice = createSlice({
       action: PayloadAction<{ fileIndex: number; renderIndex: number }>
     ) => {
       const { fileIndex, renderIndex } = action.payload;
+
       const pdfFile = state.pdf[fileIndex];
       pdfFile.renderArr[renderIndex] = true;
+
+      if (pdfFile.pages[renderIndex].selected) {
+        pdfFile.selectLength++;
+      }
 
       return state;
     },
@@ -183,6 +240,12 @@ export const fileSlice = createSlice({
 
       pdfFile.pages[renderIndex].selected = select;
 
+      if (select) {
+        pdfFile.selectLength++;
+      } else {
+        pdfFile.selectLength && pdfFile.selectLength--;
+      }
+
       return state;
     },
 
@@ -194,6 +257,12 @@ export const fileSlice = createSlice({
       const pdfFile = state.pdf[fileIndex];
 
       pdfFile.pages[renderIndex].selected = !select;
+
+      if (select) {
+        pdfFile.selectLength && pdfFile.selectLength--;
+      } else {
+        pdfFile.selectLength++;
+      }
 
       return state;
     },
@@ -215,6 +284,12 @@ export const {
   rotatePageInFileReverse,
   setSelectPageInFile,
   setSelectPageInFileReverse,
+  decreaseRedo,
+  decreaseUndo,
+  increaseRedo,
+  increaseUndo,
+  resetUndo,
+  resetRedo,
 } = fileSlice.actions;
 
 export const fileReducer = fileSlice.reducer;

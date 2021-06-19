@@ -1,18 +1,15 @@
 import React from "react";
 import { usePdfFile } from "src/context/pdfFileProvider";
 import { useAppDispatch } from "src/hooks/store";
-import { usePdfActions } from "~context/pdfActionProvider";
 import { removeFile } from "~store";
 
 export const PdfTopMenu = () => {
   const { name, index } = usePdfFile();
   const dispatch = useAppDispatch();
-  const pdfActions = usePdfActions();
 
   const onClose = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     dispatch(removeFile(index));
-    pdfActions.removePage(index);
   };
 
   return (

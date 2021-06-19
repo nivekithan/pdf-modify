@@ -1,5 +1,12 @@
-import { PDFDocument, degrees } from "pdf-lib";
-import { urlToArrayBuffer } from "../utils/urlToArrayBuffer";
+import {
+  AppDispatch,
+  decreaseRedo,
+  decreaseUndo,
+  increaseRedo,
+  increaseUndo,
+  resetRedo,
+  resetUndo,
+} from "~store";
 import { wrapDegree } from "../utils/wrapDegree";
 
 export type Actions =
@@ -44,14 +51,26 @@ export class PdfActions {
   private actions: Actions[];
   private redoActions: Actions[];
 
-  constructor(url: string) {
+  private static cache: Record<string, PdfActions> = {};
+
+  private constructor(url: string) {
     this.url = url;
     this.actions = [];
     this.redoActions = [];
   }
 
-  removePage(pageIndex: PageIndex) {
-    this.clearRedoActions();
+  static createPdfPActions(url: string) {
+    if (PdfActions.cache[url]) {
+      return PdfActions.cache[url];
+    }
+
+    const pdfActions = new PdfActions(url);
+    PdfActions.cache[url] = pdfActions;
+    return pdfActions;
+  }
+
+  removePage(pageIndex: PageIndex, dispatch: AppDispatch, fileIndex: number) {
+    this.clearRedoActions(dispatch, fileIndex);
 
     const newAction: RemovePageAction = {
       type: "removePage",
@@ -59,10 +78,11 @@ export class PdfActions {
     };
 
     this.actions.push(newAction);
+    this.addUndo(dispatch, fileIndex);
   }
 
-  removeMultiplePage(pageIndexes: PageIndex[]) {
-    this.clearRedoActions();
+  removeMultiplePage(pageIndexes: PageIndex[], dispatch: AppDispatch, fileIndex: number) {
+    this.clearRedoActions(dispatch, fileIndex);
 
     const newAction: RemoveMultiplePageAction = {
       type: "removeMultiplePage",
@@ -70,10 +90,11 @@ export class PdfActions {
     };
 
     this.actions.push(newAction);
+    this.addUndo(dispatch, fileIndex);
   }
 
-  rotatePage(pageIndex: PageIndex, degree: number) {
-    this.clearRedoActions();
+  rotatePage(pageIndex: PageIndex, degree: number, dispatch: AppDispatch, fileIndex: number) {
+    this.clearRedoActions(dispatch, fileIndex);
 
     const newAction: RotatePageAction = {
       type: "rotatePage",
@@ -82,10 +103,16 @@ export class PdfActions {
     };
 
     this.actions.push(newAction);
+    this.addUndo(dispatch, fileIndex);
   }
 
-  reorderPage(fromPageIndex: PageIndex, toPageIndex: PageIndex) {
-    this.clearRedoActions();
+  reorderPage(
+    fromPageIndex: PageIndex,
+    toPageIndex: PageIndex,
+    dispatch: AppDispatch,
+    fileIndex: number
+  ) {
+    this.clearRedoActions(dispatch, fileIndex);
 
     const newActions: ReorderPageAction = {
       type: "reorderPage",
@@ -94,10 +121,11 @@ export class PdfActions {
     };
 
     this.actions.push(newActions);
+    this.addUndo(dispatch, fileIndex);
   }
 
-  selectPage(pageIndex: PageIndex, select: boolean) {
-    this.clearRedoActions();
+  selectPage(pageIndex: PageIndex, select: boolean, dispatch: AppDispatch, fileIndex: number) {
+    this.clearRedoActions(dispatch, fileIndex);
 
     const newAction: SelectPageAction = {
       type: "selectPage",
@@ -106,66 +134,57 @@ export class PdfActions {
     };
 
     this.actions.push(newAction);
+    this.addUndo(dispatch, fileIndex);
   }
 
-  canUndo() {
-    return this.actions.length !== 0;
-  }
-
-  undo(): Actions {
+  undo(dispatch: AppDispatch, fileIndex: number): Actions {
     const lastAction = this.actions.pop();
 
     if (lastAction) {
       this.redoActions.push(lastAction);
+
+      dispatch(decreaseUndo({ fileIndex }));
+      dispatch(increaseRedo({ fileIndex }));
+
       return lastAction;
     } else {
       throw new Error("There are no actions left to undo");
     }
   }
 
-  canRedo() {
-    return this.redoActions.length !== 0;
-  }
-
-  redo(): Actions {
+  redo(dispatch: AppDispatch, fileIndex: number): Actions {
     const lastAction = this.redoActions.pop();
 
     if (lastAction) {
       this.actions.push(lastAction);
+
+      dispatch(decreaseRedo({ fileIndex }));
+      dispatch(increaseUndo({ fileIndex }));
+
       return lastAction;
     } else {
       throw new Error("There are no actions left to redo");
     }
   }
 
-  private clearRedoActions() {
+  private clearRedoActions(dispatch: AppDispatch, fileIndex: number) {
     this.redoActions = [];
+    dispatch(resetRedo({ fileIndex }));
   }
 
-  canReset() {
-    return this.canRedo() || this.canUndo();
+  private addUndo(dispatch: AppDispatch, fileIndex: number) {
+    dispatch(increaseUndo({ fileIndex }));
   }
 
-  reset() {
-    if (!this.canReset()) {
-      throw new Error("There are no actions left to reset");
-    }
-
+  reset(dispatch: AppDispatch, fileIndex: number) {
     const pastActions = [...this.actions].reverse();
 
     this.actions = [];
     this.redoActions = [];
 
+    dispatch(resetRedo({ fileIndex }));
+    dispatch(resetUndo({ fileIndex }));
+
     return pastActions;
-  }
-
-  async getNewPdfLink() {
-    return this.url;
-  }
-
-  private reorder(pdf: PDFDocument, fromPageIndex: number, toPageIndex: number) {
-    const fromPage = pdf.getPage(fromPageIndex);
-    pdf.removePage(fromPageIndex);
-    pdf.insertPage(toPageIndex, fromPage);
   }
 }

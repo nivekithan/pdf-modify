@@ -8,6 +8,7 @@ import { Draggable } from "react-beautiful-dnd";
 import { usePdfFile } from "src/context/pdfFileProvider";
 import { useAppDispatch, useAppSelector } from "src/hooks/store";
 import { hidePageInFile, rotatePageInFile, setSelectPageInFile } from "~store";
+import { usePdfActions } from "~context/pdfActionProvider";
 
 type PdfPageProps = {
   renderIndex: number;
@@ -15,36 +16,45 @@ type PdfPageProps = {
 
 export const PdfPage = ({ renderIndex }: PdfPageProps) => {
   const checkboxRef = useRef<HTMLInputElement | null>(null);
+
   const dispatch = useAppDispatch();
+
   const { url, index: fileIndex } = usePdfFile();
+  const pdfAction = usePdfActions();
 
   const { rotation, selected } = useAppSelector(
     (state) => state.files.pdf[fileIndex].pages[renderIndex]
   );
+
   const render = useAppSelector((state) => state.files.pdf[fileIndex].renderArr[renderIndex]);
+
   const index = useAppSelector((s) => s.files.pdf[fileIndex].indexArr[renderIndex]);
 
   const onToggleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.currentTarget.checked;
 
+    pdfAction.selectPage(renderIndex, selected, dispatch, fileIndex);
     dispatch(setSelectPageInFile({ fileIndex, renderIndex, select: selected }));
   };
 
   const onRotateLeft = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
 
+    pdfAction.rotatePage(renderIndex, -90, dispatch, fileIndex);
     dispatch(rotatePageInFile({ fileIndex, renderIndex, rotate: -90 }));
   };
 
   const onRotateRight = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
 
+    pdfAction.rotatePage(renderIndex, 90, dispatch, fileIndex);
     dispatch(rotatePageInFile({ fileIndex, renderIndex, rotate: 90 }));
   };
 
   const onRemove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
 
+    pdfAction.removePage(renderIndex, dispatch, fileIndex);
     dispatch(hidePageInFile({ fileIndex, renderIndex }));
   };
 

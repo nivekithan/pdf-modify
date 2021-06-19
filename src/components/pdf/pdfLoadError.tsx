@@ -47,6 +47,9 @@ export const PdfLoadError = ({ onRetry }: PdfLoadErrorProps) => {
           initialRotation: [],
           pages: [],
           renderArr: [],
+          redoLength: 0,
+          undoLength: 0,
+          selectLength: 0,
         },
         url: fileInfo.url,
       })

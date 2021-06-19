@@ -1,13 +1,21 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "~hooks/store";
 import { PdfFile } from "./pdfFile";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import { reorderPageInFile } from "~store";
 import { AddMoreFiles } from "../files/addMoreFiles";
+import { PdfActions } from "src/pdfActions/pdfActions";
 
 export const PdfFiles = () => {
   const totalFiles = useAppSelector((state) => state.files.pdf.length);
   const urlArr = useAppSelector((state) => state.files.urlArr);
+
+  const pdfActionsArr = useMemo(() => {
+    return urlArr.map((url) => {
+      return PdfActions.createPdfPActions(url);
+    });
+  }, [urlArr]);
+
   const dispatch = useAppDispatch();
 
   const onDragEnd = (res: DropResult) => {
@@ -21,13 +29,23 @@ export const PdfFiles = () => {
       return;
     }
 
-    dispatch(
-      reorderPageInFile({
-        fileIndex: 0,
-        fromRenderIndex: source.index,
-        toRenderIndex: destination.index,
-      })
-    );
+    let fileIndex = 0;
+
+    if (destination.droppableId === source.droppableId) {
+      fileIndex = urlArr.indexOf(destination.droppableId);
+
+      pdfActionsArr[fileIndex].reorderPage(source.index, destination.index, dispatch, fileIndex);
+
+      dispatch(
+        reorderPageInFile({
+          fileIndex,
+          fromRenderIndex: source.index,
+          toRenderIndex: destination.index,
+        })
+      );
+    } else {
+      return;
+    }
   };
 
   return (
@@ -37,7 +55,7 @@ export const PdfFiles = () => {
           ? Array(totalFiles)
               .fill(0)
               .map((_, i) => {
-                return <PdfFile key={urlArr[i]} index={i} />;
+                return <PdfFile key={urlArr[i]} index={i} pdfActions={pdfActionsArr[i]} />;
               })
           : null}
         {totalFiles > 0 ? <AddMoreFiles /> : null}

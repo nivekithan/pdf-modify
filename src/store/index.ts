@@ -5,6 +5,7 @@ export const store = configureStore({
   reducer: {
     files: fileReducer,
   },
+  devTools: true,
 });
 
 export type RootState = ReturnType<typeof store.getState>;
