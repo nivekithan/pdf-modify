@@ -4,7 +4,7 @@ import { PdfFile } from "./pdfFile";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import { reorderPageBetweenFiles, reorderPageInFile } from "~store";
 import { AddMoreFiles } from "../files/addMoreFiles";
-import { PdfActions } from "src/pdfUtils/pdfActions";
+import { PdfActions } from "~utils/pdfActions";
 
 export const PdfFiles = () => {
   const totalFiles = useAppSelector((state) => state.files.pdf.length);

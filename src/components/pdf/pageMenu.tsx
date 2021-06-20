@@ -16,7 +16,7 @@ import {
 import { usePdfActions } from "~context/pdfActionProvider";
 import { PDFDocument, degrees } from "pdf-lib";
 import { downloadLink } from "~utils/downloadLink";
-import { PdfStore } from "src/pdfUtils/pdfStore";
+import { PdfStore } from "~utils/pdfStore";
 import { docToUrl } from "~utils/docToUrl";
 
 export const PageMenu = () => {

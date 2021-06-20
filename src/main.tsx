@@ -3,12 +3,18 @@ import ReactDOM from "react-dom";
 import { App } from "./App";
 import { store } from "./store";
 import { Provider } from "react-redux";
+import { HarperProvider } from "./context/harperRoleProvider";
 
 ReactDOM.render(
   <React.StrictMode>
-    <Provider store={store}>
-      <App />
-    </Provider>
+    <HarperProvider
+      userName={import.meta.env.VITE_HARPER_NAME}
+      password={import.meta.env.VITE_HARPER_PASSWORD}
+    >
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </HarperProvider>
   </React.StrictMode>,
   document.getElementById("root")
 );

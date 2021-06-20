@@ -7,7 +7,7 @@ import {
   resetRedo,
   resetUndo,
 } from "~store";
-import { wrapDegree } from "../utils/wrapDegree";
+import { wrapDegree } from "./wrapDegree";
 
 export type Actions =
   | RemovePageAction
