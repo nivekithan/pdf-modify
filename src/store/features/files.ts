@@ -2,7 +2,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { arrayInsertMutate } from "~utils/arrayInsertMutate";
 import { arrayMoveMutate } from "../../utils/arrayMoveMutate";
 import { wrapDegree } from "../../utils/wrapDegree";
-import { current } from "immer";
 import { nanoid } from "nanoid";
 
 export type PdfPage = {
@@ -248,10 +247,10 @@ export const fileSlice = createSlice({
       const pdfFile = state.pdf[fileIndex];
 
       arrayMoveMutate(pdfFile.pages, toRenderIndex, fromRenderIndex);
-      arrayMoveMutate(pdfFile.indexArr, fromRenderIndex, toRenderIndex);
-      arrayMoveMutate(pdfFile.renderArr, fromRenderIndex, toRenderIndex);
-      arrayMoveMutate(pdfFile.srcUrl, fromRenderIndex, toRenderIndex);
-      arrayMoveMutate(pdfFile.uniqueArr, fromRenderIndex, toRenderIndex);
+      arrayMoveMutate(pdfFile.indexArr, toRenderIndex, fromRenderIndex);
+      arrayMoveMutate(pdfFile.renderArr, toRenderIndex, fromRenderIndex);
+      arrayMoveMutate(pdfFile.srcUrl, toRenderIndex, fromRenderIndex);
+      arrayMoveMutate(pdfFile.uniqueArr, toRenderIndex, fromRenderIndex);
 
       return state;
     },
