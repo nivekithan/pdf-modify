@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { pdfjs } from "react-pdf";
 import { NavBar } from "./components/navBar";
+import { ShareFiles } from "./components/shareFiles";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 // Windicss generated css file

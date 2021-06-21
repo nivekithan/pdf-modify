@@ -13,7 +13,6 @@ export const useLoadPdfs = () => {
   useEffect(() => {
     if (harperRes.state === "success" && state !== "success") {
       const { files } = harperRes.data;
-      console.log(files);
 
       dispatch(
         loadNewFiles({

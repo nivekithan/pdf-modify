@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { usePdfFile } from "src/context/pdfFileProvider";
 import { useAppDispatch } from "src/hooks/store";
 import { removeFile } from "~store";
+import { ShareFiles } from "../shareFiles";
 
 export const PdfTopMenu = () => {
   const { name, index } = usePdfFile();
@@ -18,9 +19,7 @@ export const PdfTopMenu = () => {
         <span className="text-lg opacity-75">Filename :</span> {name || ""}
       </h2>
       <div className="flex flex-wrap gap-x-2">
-        <button className="bg-indigo-600 hover:bg-indigo-800 px-3 py-2 text-white rounded-md text-sm">
-          Share
-        </button>
+        <ShareButton />
         <button
           className="bg-red-600 hover:bg-red-800 px-3 py-2 text-white rounded-md text-sm"
           onClick={onClose}
@@ -29,5 +28,32 @@ export const PdfTopMenu = () => {
         </button>
       </div>
     </div>
+  );
+};
+
+const ShareButton = () => {
+  const [showModal, setShowModal] = useState(false);
+  const { index } = usePdfFile();
+
+  const onModalClose = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    setShowModal(false);
+  };
+
+  const onShareShowModal = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    setShowModal(true);
+  };
+
+  return (
+    <>
+      <button
+        className="bg-indigo-600 hover:bg-indigo-800 px-3 py-2 text-white rounded-md text-sm"
+        onClick={onShareShowModal}
+      >
+        Share
+      </button>
+      {showModal ? <ShareFiles onClose={onModalClose} selectedFileIndex={index} /> : null}
+    </>
   );
 };

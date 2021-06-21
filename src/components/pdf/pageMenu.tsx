@@ -18,6 +18,7 @@ import { PDFDocument, degrees } from "pdf-lib";
 import { downloadLink } from "~utils/downloadLink";
 import { PdfStore } from "~utils/pdfStore";
 import { docToUrl } from "~utils/docToUrl";
+import { applyChangesToPdf } from "~utils/applyChangesToPdf";
 
 export const PageMenu = () => {
   const { index: fileIndex } = usePdfFile();
@@ -298,36 +299,7 @@ const ApplyChanges = () => {
   const onApplyChanges = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
 
-    const externalSrcUrl: string[] = [];
-
-    for (const url of srcArr) {
-      if (url) {
-        externalSrcUrl.push(url);
-      }
-    }
-
-    const [newPdf, pdfStore] = await Promise.all([
-      PDFDocument.create(),
-      PdfStore.loadStore([url, ...externalSrcUrl]),
-    ]);
-    let shift = 0;
-
-    for (const [i, page] of pages.entries()) {
-      if (!renderArr[i]) {
-        shift++;
-        continue;
-      }
-
-      const currUrl = srcArr[i] || url;
-      const currIndex = indexArr[i];
-
-      const [copiedPage] = await newPdf.copyPages(pdfStore.getDocument(currUrl), [currIndex]);
-      newPdf.addPage(copiedPage);
-      const currPage = newPdf.getPage(i - shift);
-      currPage.setRotation(degrees(page.rotation));
-    }
-
-    const newUrl = await docToUrl(newPdf);
+    const newUrl = await applyChangesToPdf(url, { indexArr, pages, renderArr, srcArr });
 
     downloadLink(newUrl, name);
     URL.revokeObjectURL(newUrl);
