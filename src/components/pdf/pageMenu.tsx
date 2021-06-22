@@ -177,7 +177,7 @@ export const PageMenu = () => {
           onClick={onReset}
           disabled={disableReset}
         >
-          Reset Changes
+          Reset
         </button>
 
         <Split />
@@ -284,7 +284,7 @@ const Split = () => {
       onClick={onSplit}
       disabled={disableSplit}
     >
-      Split PDF
+      Split
     </button>
   );
 };
@@ -312,7 +312,7 @@ const ApplyChanges = () => {
       setState("success");
       URL.revokeObjectURL(newUrl);
     } catch (err) {
-      // TODO
+      setState("stale");
     }
   };
 

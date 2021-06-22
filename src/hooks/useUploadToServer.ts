@@ -139,5 +139,7 @@ const uploadToStorage = async (info: FileInfo, updatedFile: ChangedPdfFiles) => 
   const file = await urlToFiles(updatedUrl, info.name);
   const storageUrl = await uploadFileToStorage(file);
 
+  URL.revokeObjectURL(updatedUrl);
+
   return storageUrl;
 };
