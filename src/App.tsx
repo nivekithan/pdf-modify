@@ -11,22 +11,28 @@ pdfjs.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
 const Home = React.lazy(() => import("./pages/home"));
 const Shared = React.lazy(() => import("./pages/shared"));
+const NotFound = React.lazy(() => import("./pages/pageNotFound"));
 
 export const App = () => {
   return (
     <div className="flex flex-col gap-y-30">
-      <NavBar />
       <Router>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Switch>
-            <Route path="/" exact>
-              <Home />
-            </Route>
-            <Route path="/:id" exact>
-              <Shared />
-            </Route>
-          </Switch>
-        </Suspense>
+        <NavBar />
+        <main className="flex flex-col gap-y-30">
+          <Suspense fallback={<div></div>}>
+            <Switch>
+              <Route path="/" exact>
+                <Home />
+              </Route>
+              <Route path="/:id" exact>
+                <Shared />
+              </Route>
+              <Route path="*">
+                <NotFound />
+              </Route>
+            </Switch>
+          </Suspense>
+        </main>
       </Router>
     </div>
   );
