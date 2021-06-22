@@ -1,17 +1,12 @@
 import React, { Suspense } from "react";
 import { pdfjs } from "react-pdf";
 import { NavBar } from "./components/navBar";
-import { ShareFiles } from "./components/shareFiles";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
-// Windicss generated css file
 import "virtual:windi.css";
-
-// CSS for react-spinner
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 
-// react-pdf requires this to work properly
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
 const Home = React.lazy(() => import("./pages/home"));
 const Shared = React.lazy(() => import("./pages/shared"));

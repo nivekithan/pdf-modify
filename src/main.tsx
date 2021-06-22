@@ -5,6 +5,10 @@ import { store } from "./store";
 import { Provider } from "react-redux";
 import { HarperProvider } from "./context/harperRoleProvider";
 
+import { registerSW } from "virtual:pwa-register";
+
+registerSW();
+
 ReactDOM.render(
   <React.StrictMode>
     <HarperProvider
