@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { usePdfFile } from "src/context/pdfFileProvider";
 import { useAppDispatch, useAppSelector } from "src/hooks/store";
 import {
@@ -19,6 +19,7 @@ import { downloadLink } from "~utils/downloadLink";
 import { PdfStore } from "~utils/pdfStore";
 import { docToUrl } from "~utils/docToUrl";
 import { applyChangesToPdf } from "~utils/applyChangesToPdf";
+import Loader from "react-loader-spinner";
 
 export const PageMenu = () => {
   const { index: fileIndex } = usePdfFile();
@@ -290,6 +291,7 @@ const Split = () => {
 
 const ApplyChanges = () => {
   const { index: fileIndex, url, name } = usePdfFile();
+  const [state, setState] = useState<"stale" | "loading" | "success">("stale");
 
   const pages = useAppSelector((state) => state.files.pdf[fileIndex].pages);
   const renderArr = useAppSelector((state) => state.files.pdf[fileIndex].renderArr);
@@ -299,18 +301,33 @@ const ApplyChanges = () => {
   const onApplyChanges = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
 
-    const newUrl = await applyChangesToPdf(url, { indexArr, pages, renderArr, srcArr });
+    try {
+      setState("loading");
+      const newUrl = await applyChangesToPdf(url, { indexArr, pages, renderArr, srcArr });
 
-    downloadLink(newUrl, name);
-    URL.revokeObjectURL(newUrl);
+      // Create small artificial timeout, it looks nice.
+      await new Promise((r) => setTimeout(r, 500));
+
+      downloadLink(newUrl, name);
+      setState("success");
+      URL.revokeObjectURL(newUrl);
+    } catch (err) {
+      // TODO
+    }
   };
 
   return (
     <button
-      className="bg-green-600 hover:bg-green-800 animate-hover text-white text-md font-semibold px-6 py-3 rounded-md "
+      className="bg-green-600 hover:bg-green-800 animate-hover text-white text-md font-semibold px-6 py-3 rounded-md"
       onClick={onApplyChanges}
     >
-      Apply Changes
+      {state === "loading" ? (
+        <div className="min-w-[108px] min-h-[22px] ">
+          <Loader type="Oval" width="16px" height="16px" visible color="#FFF" />
+        </div>
+      ) : (
+        <span>Apply Changes</span>
+      )}
     </button>
   );
 };
