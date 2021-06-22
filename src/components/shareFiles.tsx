@@ -86,7 +86,7 @@ const TShareFiles = ({ onClose, selectedFileIndex }: ShareFilesProps) => {
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-700">Select Files</h1>
           <button
-            className="bg-red-500 hover:bg-red-700 text-white px-2 py-1 text-sm rounded font-semibold"
+            className="bg-red-500 hover:bg-red-700 animate-hover text-white px-2 py-1 text-sm rounded font-semibold"
             disabled={serveState === "loading"}
             onClick={onClose}
           >
@@ -112,14 +112,14 @@ const TShareFiles = ({ onClose, selectedFileIndex }: ShareFilesProps) => {
         ) : null}
         <div className="flex">
           <button
-            className="flex-1 bg-gray-100 hover:bg-gray-200 p-2"
+            className="flex-1 bg-gray-100 hover:bg-gray-200 animate-hover p-2"
             onClick={onClickClearAll}
             disabled={serveState === "loading"}
           >
             CLEAR ALL
           </button>
           <button
-            className="flex-1 bg-blue-600 hover:bg-blue-700 p-2 text-white"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 animate-hover p-2 text-white"
             onClick={onClickUploadToServer}
             disabled={serveState === "loading"}
           >
@@ -148,7 +148,7 @@ const Option = ({ name, selected, dispatch, index }: OptionProps) => {
   };
 
   return (
-    <label className="flex justify-between items-center p-2 text-md hover:(bg-blue-600 bg-opacity-10) rounded font-semibold cursor-pointer">
+    <label className="flex justify-between items-center p-2 text-md hover:(bg-blue-600 bg-opacity-10) animate-hover rounded font-semibold cursor-pointer">
       {name}
       <input
         type="checkbox"
@@ -174,7 +174,7 @@ const CopyLink = ({ id }: { id: string }) => {
         className="text-sm truncate border-none p-2 bg-white-hover flex-1"
       />
       <button
-        className="p-2 min-w-10 hover:bg-white-hover-darker grid place-items-center"
+        className="p-2 min-w-10 hover:bg-white-hover-darker animate-hover grid place-items-center animate-hover"
         onClick={onClickCopy}
       >
         <ClipBoard width="16px" height="16px" />

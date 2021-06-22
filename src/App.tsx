@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import "virtual:windi.css";
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+import "./styles/animate.css";
 
 pdfjs.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 

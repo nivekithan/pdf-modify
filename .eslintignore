@@ -116,7 +116,7 @@ dist
 .pnp.*
 .yarn
 
-/src/pdf.worker.min.js
+pdf.worker.min.js
 
 
 /cypress

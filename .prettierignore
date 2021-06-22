@@ -115,4 +115,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-/src/pdf.worker.min.js
+pdf.worker.min.js

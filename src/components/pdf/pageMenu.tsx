@@ -150,8 +150,8 @@ export const PageMenu = () => {
     <div className="border-2 border-gray-300 border-t-0 flex justify-between p-6 flex-wrap gap-y-2">
       <div className="flex gap-x-4 flex-wrap gap-y-2">
         <button
-          className={`bg-blue-600  text-white text-md font-semibold px-4 py-2 rounded-md ${
-            disableUndo ? "opacity-50" : "hover:bg-blue-800"
+          className={`bg-blue-600  text-white text-md font-semibold px-4 py-2 rounded-md animate-opacity  ${
+            disableUndo ? "opacity-50" : "hover:bg-blue-800 animate-hover"
           }`}
           onClick={onUndo}
           disabled={disableUndo}
@@ -159,8 +159,8 @@ export const PageMenu = () => {
           Undo
         </button>
         <button
-          className={`bg-blue-600  text-white text-md font-semibold px-4 py-2 rounded-md ${
-            disableRedo ? "opacity-50" : "hover:bg-blue-800"
+          className={`bg-blue-600  text-white text-md font-semibold px-4 py-2 rounded-md animate-opacity ${
+            disableRedo ? "opacity-50" : "hover:bg-blue-800 animate-hover"
           }`}
           onClick={onRedo}
           disabled={disableRedo}
@@ -170,8 +170,8 @@ export const PageMenu = () => {
       </div>
       <div className="flex items-center gap-x-4 flex-wrap gap-y-2">
         <button
-          className={`bg-red-600  text-white text-sm font-semibold px-4 py-2 rounded-md ${
-            disableReset ? "opacity-50" : "hover:bg-red-700"
+          className={`bg-red-600  text-white text-sm font-semibold px-4 py-2 rounded-md animate-opacity ${
+            disableReset ? "opacity-50" : "hover:bg-red-700 animate-hover"
           }`}
           onClick={onReset}
           disabled={disableReset}
@@ -277,8 +277,8 @@ const Split = () => {
 
   return (
     <button
-      className={`bg-purple-600 text-white text-md font-semibold px-6 py-3 rounded-md ${
-        disableSplit ? "opacity-50" : "hover:bg-purple-800"
+      className={`bg-purple-600 text-white text-md font-semibold px-6 py-3 rounded-md animate-opacity ${
+        disableSplit ? "opacity-50" : "hover:bg-purple-800 animate-hover"
       }`}
       onClick={onSplit}
       disabled={disableSplit}
@@ -307,7 +307,7 @@ const ApplyChanges = () => {
 
   return (
     <button
-      className="bg-green-600 hover:bg-green-800 text-white text-md font-semibold px-6 py-3 rounded-md"
+      className="bg-green-600 hover:bg-green-800 animate-hover text-white text-md font-semibold px-6 py-3 rounded-md "
       onClick={onApplyChanges}
     >
       Apply Changes

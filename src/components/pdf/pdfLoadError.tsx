@@ -68,14 +68,14 @@ export const PdfLoadError = ({ onRetry }: PdfLoadErrorProps) => {
         <p className="text-xl text-center font-semibold">Sorry, unable to load this file</p>
         <div className="flex flex-wrap gap-2">
           <button
-            className="bg-blue-600 hover:bg-blue-800 px-3 py-2 text-white rounded-md"
+            className="bg-blue-600 hover:bg-blue-800 px-3 py-2 animate-hover text-white rounded-md"
             onClick={onRetry}
           >
             Retry
           </button>
           <PdfInput multiple={false} onChange={onLoadNewFile} ref={inputRef} />
           <button
-            className="bg-indigo-600 hover:bg-indigo-800 text-white px-3 py-2 rounded-md"
+            className="bg-indigo-600 hover:bg-indigo-800 animate-hover text-white px-3 py-2 rounded-md"
             onClick={onUploadAnotherFile}
           >
             Upload Another File

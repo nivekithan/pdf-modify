@@ -56,7 +56,7 @@ export const AddMoreFiles = () => {
     <div className="grid place-items-center mb-20">
       <PdfInput multiple onChange={onChangePushFiles} ref={fileOpenerRef} />
       <button
-        className="rounded-md font-semibold flex flex-col items-center  hover:bg-white-hover p-5"
+        className="rounded-md font-semibold flex flex-col items-center  hover:bg-white-hover p-5 animate-hover"
         onClick={onClick}
       >
         <AddFiles width="8rem" height="8rem" />

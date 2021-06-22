@@ -21,7 +21,7 @@ export const PdfTopMenu = () => {
       <div className="flex flex-wrap gap-x-2">
         <ShareButton />
         <button
-          className="bg-red-600 hover:bg-red-800 px-3 py-2 text-white rounded-md text-sm"
+          className="bg-red-600 hover:bg-red-800 animate-hover px-3 py-2 text-white rounded-md text-sm"
           onClick={onClose}
         >
           Close
@@ -48,7 +48,7 @@ const ShareButton = () => {
   return (
     <>
       <button
-        className="bg-indigo-600 hover:bg-indigo-800 px-3 py-2 text-white rounded-md text-sm"
+        className="bg-indigo-600 hover:bg-indigo-800 animate-hover px-3 py-2 text-white rounded-md text-sm"
         onClick={onShareShowModal}
       >
         Share
