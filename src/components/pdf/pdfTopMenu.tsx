@@ -3,6 +3,7 @@ import { usePdfFile } from "src/context/pdfFileProvider";
 import { useAppDispatch } from "src/hooks/store";
 import { removeFile } from "~store";
 import { ShareFiles } from "../shareFiles";
+import { ReactComponent as ShareIcon } from "~svg/share.svg";
 
 export const PdfTopMenu = () => {
   const { name, index } = usePdfFile();
@@ -21,7 +22,7 @@ export const PdfTopMenu = () => {
       <div className="flex flex-wrap gap-x-2">
         <ShareButton />
         <button
-          className="bg-red-600 hover:bg-red-800 animate-hover px-3 py-2 text-white rounded-md text-sm"
+          className="bg-red-500 hover:bg-red-700 font-semibold animate-hover px-3 py-2 text-white rounded-md text-sm"
           onClick={onClose}
         >
           Close
@@ -48,10 +49,11 @@ const ShareButton = () => {
   return (
     <>
       <button
-        className="bg-white-hover hover:bg-white-hover-darker animate-hover px-3 py-2 rounded-md text-sm font-semibold"
+        className="bg-white-hover hover:bg-white-hover-darker animate-hover px-3 py-2 rounded-md text-sm font-semibold flex items-center gap-x-1"
         onClick={onShareShowModal}
       >
         Share
+        <ShareIcon style={{ width: "18px", height: "18px" }} className="relative top-0.5" />
       </button>
       {showModal ? <ShareFiles onClose={onModalClose} selectedFileIndex={index} /> : null}
     </>

@@ -20,6 +20,7 @@ import { PdfStore } from "~utils/pdfStore";
 import { docToUrl } from "~utils/docToUrl";
 import { applyChangesToPdf } from "~utils/applyChangesToPdf";
 import Loader from "react-loader-spinner";
+import { ReactComponent as DownloadIcon } from "~svg/download.svg";
 
 export const PageMenu = () => {
   const { index: fileIndex } = usePdfFile();
@@ -307,6 +308,9 @@ const ApplyChanges = () => {
   const onApplyChanges = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
 
+    if (state === "loading") {
+      return;
+    }
     try {
       setState("loading");
       const newUrl = await applyChangesToPdf(url, { indexArr, pages, renderArr, srcArr });
@@ -328,11 +332,14 @@ const ApplyChanges = () => {
       onClick={onApplyChanges}
     >
       {state === "loading" ? (
-        <div className="min-w-[108px] min-h-[22px] ">
+        <div className="min-w-[136px] min-h-[22px] ">
           <Loader type="Oval" width="16px" height="16px" visible color="#FFF" />
         </div>
       ) : (
-        <span>Apply Changes</span>
+        <span className="flex items-center gap-x-1">
+          Apply Changes
+          <DownloadIcon />
+        </span>
       )}
     </button>
   );

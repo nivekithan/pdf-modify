@@ -5,6 +5,7 @@ import { useUploadToServer } from "~hooks/useUploadToServer";
 import { ReactComponent as ClipBoard } from "~svg/clipboard.svg";
 import Loader from "react-loader-spinner";
 import { useAppSelector } from "~hooks/store";
+import { ReactComponent as ShareIcon } from "~svg/share.svg";
 
 type ShareFilesProps = {
   onClose: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
@@ -124,7 +125,13 @@ const TShareFiles = ({ onClose, selectedFileIndex }: ShareFilesProps) => {
             disabled={serveState === "loading"}
           >
             {serveState !== "loading" ? (
-              "SHARE"
+              <div className="flex items-center justify-center gap-x-1">
+                SHARE
+                <ShareIcon
+                  style={{ width: "16px", height: "16px" }}
+                  className="relative top-0.25"
+                />
+              </div>
             ) : (
               <Loader type="Oval" width="16px" height="16px" visible color="#FFF" />
             )}
@@ -172,6 +179,7 @@ const CopyLink = ({ id }: { id: string }) => {
         type="text"
         value={`${location.origin}/${id}`}
         className="text-sm truncate border-none p-2 bg-white-hover flex-1"
+        read-only
       />
       <button
         className="p-2 min-w-10 hover:bg-white-hover-darker animate-hover grid place-items-center animate-hover"
