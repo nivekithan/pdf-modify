@@ -14,7 +14,12 @@ export const NavBar = () => {
           <Link to="/" className="hover:text-blue-600 animate-hover">
             Home
           </Link>
-          <a href="https://github.com/nivekithan/pdf-modify">Github</a>
+          <a
+            href="https://github.com/nivekithan/pdf-modify"
+            className="hover:text-blue-600 animate-hover"
+          >
+            Github
+          </a>
         </div>
       </nav>
     </header>

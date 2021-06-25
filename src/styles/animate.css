@@ -1,7 +1,7 @@
 .animate-hover {
-  transition: background-color 200ms ease-in;
+  transition: background-color 100ms ease-in;
 }
 
 .animate-opacity {
-  transition: opacity 200ms ease-in;
+  transition: opacity 100ms ease-in;
 }

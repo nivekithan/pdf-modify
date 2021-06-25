@@ -1,11 +1,7 @@
 {
-    "cSpell.words": [
-        "bolb",
-        "immer",
-        "vite",
-        "vitejs",
-        "windi",
-        "windicss"
-    ],
-    "typescript.tsdk": "node_modules\\typescript\\lib"
+  "cSpell.words": ["bolb", "immer", "vite", "vitejs", "windi", "windicss"],
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "editor.quickSuggestions": {
+    "strings": true
+  }
 }

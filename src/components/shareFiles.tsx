@@ -112,7 +112,7 @@ const TShareFiles = ({ onClose, selectedFileIndex }: ShareFilesProps) => {
         ) : null}
         <div className="flex">
           <button
-            className="flex-1 bg-gray-100 hover:bg-gray-200 animate-hover p-2"
+            className="flex-1 bg-white-hover hover:bg-white-hover-darker animate-hover p-2"
             onClick={onClickClearAll}
             disabled={serveState === "loading"}
           >

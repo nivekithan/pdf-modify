@@ -48,7 +48,7 @@ const ShareButton = () => {
   return (
     <>
       <button
-        className="bg-indigo-600 hover:bg-indigo-800 animate-hover px-3 py-2 text-white rounded-md text-sm"
+        className="bg-white-hover hover:bg-white-hover-darker animate-hover px-3 py-2 rounded-md text-sm font-semibold"
         onClick={onShareShowModal}
       >
         Share

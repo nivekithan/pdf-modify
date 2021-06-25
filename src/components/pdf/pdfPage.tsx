@@ -76,19 +76,19 @@ export const PdfPage = ({ renderIndex }: PdfPageProps) => {
               </div>
               <div className=" flex">
                 <button
-                  className="p-1 text-sm hover:bg-white-hover-darker animate-hover rounded"
+                  className="p-2 text-sm hover:bg-white-hover-darker animate-hover rounded"
                   onClick={onRotateLeft}
                 >
                   <RotateLeft width="16px" height="16px" opacity="0.6" />
                 </button>
                 <button
                   onClick={onRemove}
-                  className="p-1 text-sm hover:bg-white-hover-darker animate-hover"
+                  className="p-2 text-sm hover:bg-white-hover-darker animate-hover"
                 >
                   <Close width="16px" height="16px" opacity="0.6" />
                 </button>
                 <button
-                  className="text-sm p-1 hover:bg-white-hover-darker animate-hover rounded"
+                  className="text-sm p-2 hover:bg-white-hover-darker animate-hover rounded"
                   onClick={onRotateRight}
                 >
                   <RotateRight width="16px" height="16px" opacity="0.6" />
