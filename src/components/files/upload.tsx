@@ -66,10 +66,10 @@ export const Upload = () => {
     <div>
       <PdfInput multiple onChange={onChangeLoadFiles} ref={originalFileInput} />
       <button
-        className="bg-blue-600 text-white text-2xl px-10 py-5 rounded-md grid place-items-center hover:bg-blue-800 animate-hover"
+        className="bg-blue-600 text-white text-2xl px-8 py-4 rounded-md grid place-items-center hover:bg-blue-800 animate-hover"
         onClick={onClickOpenFilePicker}
       >
-        Select PDF file
+        Upload PDF
       </button>
     </div>
   );

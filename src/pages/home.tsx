@@ -7,10 +7,11 @@ const Home = () => {
     <>
       <div className="grid place-items-center">
         <section className="flex flex-col gap-y-8 mx-15 items-center">
-          <h1 className="font-bold text-8xl text-dark-300 text-center">Modify Your Pdf Offline</h1>
-          <p className="text-3xl text-center">
-            Install this site as PWA in your computer to modify your pdf offline. Every modification
-            happens locally on your computer, no file is sent to any server.
+          <h1 className="font-bold text-8xl text-dark-300 text-center">Edit your Pdf rapidly</h1>
+          <p className="text-3xl text-center w-max-[90%]">
+            Any file you upload will be edited in your browser no file is sent to any server. If
+            your browser supports you can also install this site as PWA which allows you edit pdf
+            offline.
           </p>
           <div className="mt-6">
             <Upload />

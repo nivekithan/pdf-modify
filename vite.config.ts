@@ -13,7 +13,7 @@ export default defineConfig({
     svgr(),
     VitePWA({
       manifest: {
-        name: "Pdf Modify",
+        name: "Cut Pdf",
         icons: [
           {
             src: "/manifest-icon-192.png",

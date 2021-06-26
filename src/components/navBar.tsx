@@ -8,7 +8,7 @@ export const NavBar = () => {
       <nav className="bg-light-200 flex items-stretch mx-5">
         <div className="flex items-center gap-x-3 text-xl font-semibold tracking-wide p-2 ">
           <Logo width="48px" height="48px" />
-          Modify Pdf
+          Cut Pdf
         </div>
         <div className="flex items-stretch ml-auto">
           <Link to="/" className="flex items-center hover:bg-white-hover animate-hover px-6 ">
