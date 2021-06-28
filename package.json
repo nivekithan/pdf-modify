@@ -21,10 +21,10 @@
     "react-redux": "^7.2.4",
     "react-router-dom": "^5.2.0",
     "use-immer": "^0.5.2",
-    "vite-plugin-pwa": "^0.8.1",
     "workbox-window": "^6.1.5"
   },
   "devDependencies": {
+    "vite-plugin-pwa": "^0.8.1",
     "@types/node": "^15.12.2",
     "@types/react": "^17.0.0",
     "@types/react-beautiful-dnd": "^13.0.0",
