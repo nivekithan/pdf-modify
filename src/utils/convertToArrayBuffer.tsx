@@ -3,7 +3,6 @@ export const convertToArrayBuffer = (file: File) => {
     const fileReader = new FileReader();
 
     const onError = (e: ProgressEvent<FileReader>) => {
-      console.log(e.target?.error);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       reject(e.target!.error!);
     };
